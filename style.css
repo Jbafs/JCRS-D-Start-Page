@@ -1,0 +1,45 @@
+/* Container */
+.container {
+    position: relative;
+    height: 100vh;
+}
+
+/* Grid for applications */
+.app-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 20px;
+    width: 80%;
+    margin: 0 auto;
+}
+
+/* Each application wrapper */
+.application {
+    position: relative; /* allows popup to position over this app */
+}
+
+/* App box */
+.appBox {
+    width: 150px;
+    height: 150px;
+    background: lightblue;
+    border: 4px solid black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+/* Popup box */
+.popUpBox {
+    position: absolute;
+    top: -10px;
+    left: 160px;
+    width: 300px;
+    height: 150px;
+    background: lightyellow;
+    border: 2px solid black;
+    z-index: 10; /* ensures it appears above everything */
+    padding: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}

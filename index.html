@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- defines the meta data -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://www.unpkg.com/vue@3.0.2/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <title>JCRS-D</title>
+</head>
+
+<body>
+
+    <div class="container" id="app">
+        <h1>Title thing</h1>
+
+        <div class="app-list">
+            <div class="application" v-for="app in applications" :key="app.id">
+                <div class="appBox" @mouseover="setPopup(app.id, true)" @mouseleave="setPopup(app.id, false)">
+                    {{ app.name }}
+                </div>
+
+                <div class="popUpBox" v-show="showPopups[app.id]">
+                    {{ app.description }}
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- Imports the script -->
+        <script src="app.js"></script>
+</body>
+
+</html>

@@ -17,7 +17,7 @@
 
         <div class="app-list">
             <div class="application" v-for="app in applications" :key="app.id">
-                <a href="app.link" class="appLink">
+                <a href=app.link class="appLink">
                     <div class="appBox" @mouseover="setPopup(app.id, true)" @mouseleave="setPopup(app.id, false)">
                         {{ app.name }}
                     </div>

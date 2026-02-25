@@ -17,10 +17,11 @@
 
         <div class="app-list">
             <div class="application" v-for="app in applications" :key="app.id">
-                <div class="appBox" @mouseover="setPopup(app.id, true)" @mouseleave="setPopup(app.id, false)" href=app.link>
-                    {{ app.name }}
-                </div>
-
+                <a href="app.link" class="appLink">
+                    <div class="appBox" @mouseover="setPopup(app.id, true)" @mouseleave="setPopup(app.id, false)">
+                        {{ app.name }}
+                    </div>
+                </a>
                 <div class="popUpBox" v-show="showPopups[app.id]">
                     {{ app.description }}
                 </div>

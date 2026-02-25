@@ -19,7 +19,7 @@
             <div class="application" v-for="app in applications" :key="app.id">
                 <a :href=app.link class="appLink">
                     <div class="appBox" @mouseover="setPopup(app.id, true)" @mouseleave="setPopup(app.id, false)">
-                        {{ app.name }}
+                        <img :src="app.image" :alt="app.name" width = 150 height = 150>
                     </div>
                 </a>
                 <div class="popUpBox" v-show="showPopups[app.id]">

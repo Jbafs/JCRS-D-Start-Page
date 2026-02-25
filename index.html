@@ -13,11 +13,11 @@
 <body>
 
     <div class="container" id="app">
-        <h1>Title thing</h1>
+        <h1>Apps</h1>
 
         <div class="app-list">
             <div class="application" v-for="app in applications" :key="app.id">
-                <div class="appBox" @mouseover="setPopup(app.id, true)" @mouseleave="setPopup(app.id, false)">
+                <div class="appBox" @mouseover="setPopup(app.id, true)" @mouseleave="setPopup(app.id, false)" href=app.link>
                     {{ app.name }}
                 </div>
 

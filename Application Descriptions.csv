@@ -1,0 +1,15 @@
+Application,Description,Function,Importance
+Unity,Content-Processor,Data Processing / Orchestration,
+Accumulo,Key-value data store for cell-level security,"Storage, Discovery, Configuration",
+Admin Portal,"administrators manage permissions, configurations, and system operations",Platform Management,
+Airflow,"Workflow orchestrator to build, schedule, and monitor data pipelines with Python-DAG flows",Data Processing / Orchestration,X
+Consul,"Service mesh and service-discovery tool that provides health checks, configuration management, and secure service-to-service communication","Storage, Discovery, Configuration",
+Documentation Portal,"Organized and searchable technical documentation, guides, and reference material. ",Platform Management,X
+Grafana,Visualization and monitoring platform that turns metrics and logs into interactive dashboards for observability in the system,"Monitoring, Logging, Observability, Analysis",
+Kibana,Data exploration and visualization tool for Elasticsearch,"Monitoring, Logging, Observability, Analysis",X
+Nagios,"Infrastructure monitoring system that tracks hosts, services, and network resources","Monitoring, Logging, Observability, Analysis",
+NiFi,Dataflow automation tool that moves and transforms data,Data Processing / Orchestration,X
+NiFi Registry,"Stores versions of NiFi flow configurations, enabling change tracking and deployment consistency","Monitoring, Logging, Observability, Analysis",
+Prometheus,Metrics-based monitroing and alerting system,"Monitoring, Logging, Observability, Analysis",
+RDA Deployer,Custom Application Deployer ,Platform Management,
+Spark History Server,Displays logs and metrics of Spark Applications,Data Processing / Orchestration,

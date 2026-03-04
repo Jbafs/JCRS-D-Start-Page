@@ -6,6 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://www.unpkg.com/vue@3.0.2/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <link rel="stylesheet" href="style.css">
     <title>JCRS-D</title>
 </head>
@@ -19,7 +20,7 @@
             <div class="application" v-for="app in applications" :key="app.id">
                 <a :href=app.link class="appLink">
                     <div class="appBox" @mouseover="setPopup(app.id, true)" @mouseleave="setPopup(app.id, false)">
-                        <img :src="app.image" :alt="app.name" width = 150 height = 150>
+                        <img :src="app.image" :alt="app.name" width=150 height=150>
                     </div>
                 </a>
                 <div class="popUpBox" v-show="showPopups[app.id]">
@@ -27,11 +28,13 @@
                 </div>
             </div>
         </div>
-
-
-
         <!-- Imports the script -->
         <script src="app.js"></script>
+
+
+
+
+
 </body>
 
 </html>

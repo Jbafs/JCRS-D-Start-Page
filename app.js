@@ -1,27 +1,55 @@
 const app = Vue.createApp({
   data() {
     return {
-      applications: [
-        { id: 'app1', name: 'Application 1', description: 'Description for app 1', image: 'images/airflow.png',
-          link: "https://www.youtube.com/watch?v=T14DQkV0fEQ"},
-        { id: 'app2', name: 'Application 2', description: 'Description for app 2', image: 'images/nifi.png',
-          link: "https://youtube.com"},
-        { id: 'app3', name: 'Application 3', description: 'Description for app 3', image: 'images/spark.png',
-          link: "https://github.com/Tanker03"}
-      ],
-
+      applications: [],
       showPopups: {}
     }
   },
 
-  created() {
-    // Initialize popup visibility for each app
-    this.applications.forEach(app => {
-      this.showPopups[app.id] = false
-    })
+  mounted() {
+    this.loadCSV()
   },
 
   methods: {
+    loadCSV() {
+      Papa.parse("Application_Descriptions.csv", {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+
+        complete: (results) => {
+          results.data.forEach((row, index) => {
+            const name = row["Application"]
+
+            if (!name) return
+
+            const lowerCaseName = name
+              .toLowerCase()
+              .replace(/\s+/g, "_")
+
+            const appObj = {
+              id: `app${index + 1}`,
+              name: name,
+              description: row["Description"],
+              function: row["Function"],
+              importance: row["Importance"],
+              link: "https://youtube.com",
+              image: `images/${lowerCaseName}.png`
+            }
+
+            this.applications.push(appObj)
+            this.showPopups[appObj.id] = false
+          })
+
+          console.log("Loaded apps:", this.applications)
+        },
+
+        error: (err) => {
+          console.error("CSV load error:", err)
+        }
+      })
+    },
+
     setPopup(id, value) {
       this.showPopups[id] = value
     }
@@ -29,4 +57,3 @@ const app = Vue.createApp({
 })
 
 app.mount("#app")
-

@@ -17,7 +17,7 @@
         <h1>Apps</h1>
 
         <div class="app-list">
-            <div class="application" v-for="app in applications" :key="app.id">
+            <div class="application" v-for="app in currentCategory" :key="app.id">
                 <a :href=app.link class="appLink">
                     <div class="appBox" @mouseover="setPopup(app.id, true)" @mouseleave="setPopup(app.id, false)">
                         <img :src="app.image" :alt="app.name" width=150 height=150>

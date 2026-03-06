@@ -2,7 +2,9 @@ const app = Vue.createApp({
   data() {
     return {
       applications: [],
-      showPopups: {}
+      categories: {},
+      showPopups: {},
+      currentCategory: null
     }
   },
 
@@ -11,6 +13,21 @@ const app = Vue.createApp({
   },
 
   methods: {
+    loadCategories() {
+      this.categories["All"] = this.applications;
+      this.applications.forEach((app) =>{
+        const category = app.function
+        if (!this.categories[category]) {
+          this.categories[category] = []
+          console.log(`Created category: ${category}`);
+        }
+        this.categories[category].push(app)
+      });
+      console.log("Loaded categories:", this.categories);
+      this.currentCategory = this.categories["All"];
+    },
+
+
     loadCSV() {
       Papa.parse("Application_Descriptions.csv", {
         download: true,
@@ -42,6 +59,7 @@ const app = Vue.createApp({
           })
 
           console.log("Loaded apps:", this.applications)
+          this.loadCategories()
         },
 
         error: (err) => {

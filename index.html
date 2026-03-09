@@ -2,7 +2,6 @@
 <html>
 
 <head>
-    <!-- defines the meta data -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://www.unpkg.com/vue@3.0.2/dist/vue.global.js"></script>
@@ -12,10 +11,11 @@
 </head>
 
 <body>
-
     <div class="container" id="app">
-        <h1>Apps</h1>
-
+        <div class="header">
+            <h1>Apps</h1>
+            <div class="infoBox" @mouseover="showFilters=true" @mouseleave="checkLeave($event)">Filters</div>
+        </div>
         <div class="app-list">
             <div class="application" v-for="app in currentCategory" :key="app.id">
                 <a :href=app.link class="appLink">
@@ -28,13 +28,14 @@
                 </div>
             </div>
         </div>
-        <!-- Imports the script -->
-        <script src="app.js"></script>
-
-
-
-
-
+        <div class="filtersPanel" v-show="showFilters" @mouseover="showFilters=true"
+            @mouseleave="checkPanelLeave($event)">
+            <div class="filterItem" @click="testPrint('filter 1')">Filter 1</div>
+            <div class="filterItem" @click="testPrint('filter 2')">Filter 2</div>
+            <div class="filterItem" @click="testPrint('filter 3')">Filter 3</div>
+        </div>
+    </div>
+    <script src="app.js"></script>
 </body>
 
 </html>

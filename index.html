@@ -14,8 +14,14 @@
     <div class="container" id="app">
         <div class="header">
             <h1>Apps</h1>
-            <div class="infoBox" @mouseover="showFilters=true" @mouseleave="checkLeave($event)">Filters</div>
+            <div class="categoryWrapper" @mouseleave="showCategories=false">
+                <div class="infoBox" @mouseover="showCategories=true">Categories</div>
+                <div class="categoryPanel" v-show="showCategories">
+                    <div class="filterItem" v-for="cat in categories" @click="switchCategory(cat.id)">{{cat.id}}</div>
+                </div>
+            </div>
         </div>
+
         <div class="app-list">
             <div class="application" v-for="app in currentCategory" :key="app.id">
                 <a :href=app.link class="appLink">
@@ -27,12 +33,6 @@
                     {{ app.description }}<br>{{ app.function }}
                 </div>
             </div>
-        </div>
-        <div class="filtersPanel" v-show="showFilters" @mouseover="showFilters=true"
-            @mouseleave="checkPanelLeave($event)">
-            <div class="filterItem" @click="testPrint('filter 1')">Filter 1</div>
-            <div class="filterItem" @click="testPrint('filter 2')">Filter 2</div>
-            <div class="filterItem" @click="testPrint('filter 3')">Filter 3</div>
         </div>
     </div>
     <script src="app.js"></script>

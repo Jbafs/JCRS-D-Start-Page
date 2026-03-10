@@ -6,8 +6,18 @@ const app = Vue.createApp({
       applications: [],
       categories: {},
       showPopups: {},
+      flippedPopups: {},
+      popupTimers: {},
       showCategories: false,
-      currentCategory: null
+      currentCategory: null,
+      currentCategoryId: "All",
+
+      // Edit mode
+      editMode: false,
+      renamingCategory: null,
+      renameValue: "",
+      dragSrcId: null,
+      managingApp: null,
     }
   },
   mounted() {
@@ -15,12 +25,15 @@ const app = Vue.createApp({
   },
   methods: {
 
+    // ─── Init ────────────────────────────────────────────────────────────────
+
     async init() {
       await this.loadCSV()
       await this.loadCategories()
     },
 
-    // Loads apps from CSV into this.applications
+    // ─── CSV ─────────────────────────────────────────────────────────────────
+
     loadCSV() {
       return new Promise((resolve, reject) => {
         Papa.parse("Application_Descriptions.csv", {
@@ -43,6 +56,7 @@ const app = Vue.createApp({
               }
               this.applications.push(appObj)
               this.showPopups[appObj.id] = false
+              this.flippedPopups[appObj.id] = false
             })
             resolve()
           },
@@ -54,7 +68,8 @@ const app = Vue.createApp({
       })
     },
 
-    // Tries KV first, falls back to bootstrapping from CSV
+    // ─── KV / Categories ─────────────────────────────────────────────────────
+
     async loadCategories() {
       try {
         const res = await fetch(WORKER_URL)
@@ -62,7 +77,6 @@ const app = Vue.createApp({
         const hasData = json.categories && Object.keys(json.categories).length > 0
 
         if (hasData) {
-          // KV has data — reconstruct lists from appIds
           this.categories = {}
           for (const [key, cat] of Object.entries(json.categories)) {
             this.categories[key] = {
@@ -70,11 +84,10 @@ const app = Vue.createApp({
               label: cat.label,
               list: cat.appIds
                 .map(id => this.applications.find(a => a.id === id))
-                .filter(Boolean) // silently drop appIds no longer in CSV
+                .filter(Boolean)
             }
           }
         } else {
-          // KV is empty — bootstrap from CSV and save
           this.bootstrapFromCSV()
           await this.saveCategories()
         }
@@ -84,9 +97,9 @@ const app = Vue.createApp({
       }
 
       this.currentCategory = this.categories["All"]?.list ?? []
+      this.currentCategoryId = "All"
     },
 
-    // Builds categories from CSV function column (first-run only)
     bootstrapFromCSV() {
       this.categories = {
         All: { id: "All", label: "All", list: [...this.applications] }
@@ -101,7 +114,6 @@ const app = Vue.createApp({
       })
     },
 
-    // Serializes categories to KV (appIds only, no full app objects)
     async saveCategories() {
       const payload = { categories: {} }
       for (const [key, cat] of Object.entries(this.categories)) {
@@ -122,13 +134,142 @@ const app = Vue.createApp({
       }
     },
 
-    setPopup(id, value) {
-      this.showPopups[id] = value
+    // ─── Navigation ──────────────────────────────────────────────────────────
+
+    switchCategory(categoryId) {
+      this.currentCategoryId = categoryId
+      this.currentCategory = this.categories[categoryId]?.list ?? []
+      this.managingApp = null
     },
 
-    switchCategory(category) {
-      console.log("Switching to category:", category)
-      this.currentCategory = this.categories[category]?.list ?? []
+    // ─── Popups ──────────────────────────────────────────────────────────────
+
+    setPopup(id, value) {
+      if (this.editMode) return
+      if (value) {
+        this.popupTimers[id] = setTimeout(() => {
+          this.showPopups[id] = true
+          this.$nextTick(() => {
+            const appEl = document.querySelector(`[data-id="${id}"]`)
+            if (appEl) {
+              const rect = appEl.getBoundingClientRect()
+              this.flippedPopups[id] = rect.right + 300 > window.innerWidth
+            }
+          })
+        }, 400)
+      } else {
+        clearTimeout(this.popupTimers[id])
+        this.popupTimers[id] = null
+        this.showPopups[id] = false
+      }
+    },
+
+    // ─── Edit Mode ───────────────────────────────────────────────────────────
+
+    toggleEditMode() {
+      this.editMode = !this.editMode
+      if (!this.editMode) {
+        this.managingApp = null
+        this.renamingCategory = null
+        Object.keys(this.showPopups).forEach(id => this.showPopups[id] = false)
+      }
+    },
+
+    // ─── Category CRUD ───────────────────────────────────────────────────────
+
+    createCategory() {
+      const id = `cat_${Date.now()}`
+      this.categories[id] = { id, label: "New Category", list: [] }
+      this.startRename(id, "New Category")
+      this.saveCategories()
+    },
+
+    startRename(id, currentLabel) {
+      this.renamingCategory = id
+      this.renameValue = currentLabel
+      this.$nextTick(() => {
+        const input = document.getElementById(`rename-input-${id}`)
+        if (input) { input.focus(); input.select() }
+      })
+    },
+
+    commitRename(id) {
+      const trimmed = this.renameValue.trim()
+      if (!trimmed) { this.renamingCategory = null; return }
+      this.categories[id].label = trimmed
+      this.renamingCategory = null
+      this.saveCategories()
+    },
+
+    deleteCategory(id) {
+      if (id === "All") return
+      delete this.categories[id]
+      if (this.currentCategoryId === id) {
+        this.switchCategory("All")
+      }
+      this.saveCategories()
+    },
+
+    // ─── App ↔ Category ──────────────────────────────────────────────────────
+
+    toggleAppInCategory(appId, categoryId) {
+      if (categoryId === "All") return
+      const cat = this.categories[categoryId]
+      const exists = cat.list.find(a => a.id === appId)
+      if (exists) {
+        cat.list = cat.list.filter(a => a.id !== appId)
+      } else {
+        const appObj = this.applications.find(a => a.id === appId)
+        if (appObj) cat.list.push(appObj)
+      }
+      if (this.currentCategoryId === categoryId) {
+        this.currentCategory = cat.list
+      }
+      this.saveCategories()
+    },
+
+    appInCategory(appId, categoryId) {
+      return !!this.categories[categoryId]?.list.find(a => a.id === appId)
+    },
+
+    deleteApp(appId) {
+      // Only remove from non-All categories — All always reflects the full CSV
+      for (const [key, cat] of Object.entries(this.categories)) {
+        if (key === "All") continue
+        cat.list = cat.list.filter(a => a.id !== appId)
+      }
+      if (this.currentCategoryId !== "All") {
+        this.currentCategory = this.currentCategory.filter(a => a.id !== appId)
+      }
+      this.managingApp = null
+      this.saveCategories()
+    },
+
+    toggleManageApp(appId) {
+      this.managingApp = this.managingApp === appId ? null : appId
+    },
+
+    // ─── Drag to reorder ─────────────────────────────────────────────────────
+
+    onDragStart(appId) {
+      this.dragSrcId = appId
+    },
+
+    onDragOver(event) {
+      event.preventDefault()
+    },
+
+    onDrop(targetAppId) {
+      if (!this.dragSrcId || this.dragSrcId === targetAppId) return
+      const list = this.currentCategory
+      const srcIndex = list.findIndex(a => a.id === this.dragSrcId)
+      const tgtIndex = list.findIndex(a => a.id === targetAppId)
+      if (srcIndex === -1 || tgtIndex === -1) return
+      const [moved] = list.splice(srcIndex, 1)
+      list.splice(tgtIndex, 0, moved)
+      this.categories[this.currentCategoryId].list = list
+      this.dragSrcId = null
+      this.saveCategories()
     },
 
     testPrint(input) {

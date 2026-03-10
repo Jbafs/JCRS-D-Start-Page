@@ -12,26 +12,111 @@
 
 <body>
     <div class="container" id="app">
+
+        <!-- Header -->
         <div class="header">
             <h1>Apps</h1>
-            <div class="categoryWrapper" @mouseleave="showCategories=false">
-                <div class="infoBox" @mouseover="showCategories=true">Categories</div>
-                <div class="categoryPanel" v-show="showCategories">
-                    <div class="filterItem" v-for="cat in categories" @click="switchCategory(cat.id)">{{cat.id}}</div>
+            <div class="headerControls">
+                <!-- Edit mode toggle -->
+                <div class="editToggle" :class="{ active: editMode }" @click="toggleEditMode">
+                    {{ editMode ? '✓ Done' : '✎ Edit' }}
+                </div>
+                <!-- Filters wrapper -->
+                <div class="filtersWrapper" @mouseleave="showCategories=false">
+                    <div class="infoBox" @mouseover="showCategories=true">Filters</div>
+                    <div class="filtersPanel" v-show="showCategories">
+
+                        <!-- Normal mode: just click to switch -->
+                        <template v-if="!editMode">
+                            <div class="filterItem"
+                                 v-for="cat in categories"
+                                 :class="{ activeCategory: currentCategoryId === cat.id }"
+                                 @click="switchCategory(cat.id)">
+                                {{ cat.label }}
+                            </div>
+                        </template>
+
+                        <!-- Edit mode: rename + delete + add -->
+                        <template v-else>
+                            <div class="filterItem editableFilter" v-for="cat in categories" :key="cat.id">
+                                <!-- Rename input -->
+                                <template v-if="renamingCategory === cat.id">
+                                    <input
+                                        :id="`rename-input-${cat.id}`"
+                                        v-model="renameValue"
+                                        class="renameInput"
+                                        @keyup.enter="commitRename(cat.id)"
+                                        @keyup.escape="renamingCategory = null"
+                                        @blur="commitRename(cat.id)"
+                                    />
+                                </template>
+                                <template v-else>
+                                    <span class="catLabel" @click="startRename(cat.id, cat.label)">{{ cat.label }}</span>
+                                    <button class="catDelete" v-if="cat.id !== 'All'" @click="deleteCategory(cat.id)">×</button>
+                                </template>
+                            </div>
+                            <!-- Add new category -->
+                            <div class="filterItem addCategory" @click="createCategory">+ New</div>
+                        </template>
+
+                    </div>
                 </div>
             </div>
         </div>
 
+        <!-- App grid -->
         <div class="app-list">
-            <div class="application" v-for="app in currentCategory" :key="app.id">
-                <a :href=app.link class="appLink">
-                    <div class="appBox" @mouseover="setPopup(app.id, true)" @mouseleave="setPopup(app.id, false)">
+            <div class="application"
+                 v-for="app in currentCategory"
+                 :key="app.id"
+                 @mouseenter="setPopup(app.id, true)"
+                 @mouseleave="setPopup(app.id, false)"
+                 :draggable="editMode ? 'true' : 'false'"
+                 @dragstart="editMode && onDragStart(app.id)"
+                 @dragover="editMode && onDragOver($event)"
+                 @drop="editMode && onDrop(app.id)"
+                 :class="{ dragging: dragSrcId === app.id }">
+
+                <!-- App box -->
+                <a :href="app.link" class="appLink" @click="editMode ? $event.preventDefault() : null">
+                    <div class="appBox" :data-id="app.id">
                         <img :src="app.image" :alt="app.name" width=150 height=150>
+
+                        <!-- Edit mode overlays -->
+                        <div class="editOverlay" v-if="editMode">
+                            <span class="dragHandle">⠿</span>
+                            <button class="deleteAppBtn" @click.stop.prevent="deleteApp(app.id)">🗑</button>
+                            <button class="manageBtn" @click.stop.prevent="toggleManageApp(app.id)">⚙</button>
+                        </div>
                     </div>
                 </a>
-                <div class="popUpBox" v-show="showPopups[app.id]">
-                    {{ app.description }}<br>{{ app.function }}
+
+                <!-- Category checkbox overlay -->
+                <div class="categoryOverlay" v-if="editMode && managingApp === app.id">
+                    <div class="categoryOverlayTitle">Categories</div>
+                    <label class="categoryCheck"
+                           v-for="cat in categories"
+                           :key="cat.id"
+                           :class="{ disabled: cat.id === 'All' }">
+                        <input
+                            type="checkbox"
+                            :checked="appInCategory(app.id, cat.id)"
+                            :disabled="cat.id === 'All'"
+                            @change="toggleAppInCategory(app.id, cat.id)"
+                        />
+                        {{ cat.label }}
+                    </label>
                 </div>
+
+                <!-- Description popup (normal mode only) -->
+                <div class="popUpBox"
+                     v-show="showPopups[app.id]"
+                     :class="{ flipped: flippedPopups[app.id] }">
+                    <strong>{{ app.name }}</strong><br>
+                    {{ app.description }}<br>
+                    <em>{{ app.function }}</em>
+                </div>
+
             </div>
         </div>
     </div>

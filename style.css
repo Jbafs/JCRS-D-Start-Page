@@ -140,7 +140,7 @@ body { margin: 0; }
 
 /* ── Filters ─────────────────────────────────────────────────── */
 .filtersWrapper {
-    position: static;
+    position: relative;
 }
 
 .infoBox {
@@ -156,8 +156,9 @@ body { margin: 0; }
 }
 
 .filtersPanel {
-    position: fixed;
-    right: 16px;
+    position: absolute;
+    top: 100%;
+    right: 0;
     width: min(400px, calc(100vw - 32px));
     background: rgba(255,255,255,0.97);
     border: 4px solid black;

@@ -103,7 +103,7 @@
                          title="Select multiple apps to bulk-assign categories (B)">
                         {{ bulkSelectMode ? '✕ Cancel' : '☑ Select' }}
                     </div>
-                    <div class="filtersWrapper" @mouseleave="showCategories=false">
+                    <div class="filtersWrapper">
                         <div class="infoBox" @mouseover="openCategories()">Filters</div>
                         <transition name="panel-drop">
                         <div class="filtersPanel" v-show="showCategories">
@@ -126,7 +126,7 @@
                                             class="renameInput"
                                             @keyup.enter="commitRename(cat.id)"
                                             @keyup.escape="renamingCategory = null"
-                                            @blur="commitRename(cat.id)"
+                                            @blur="onRenameBlur(cat.id, $event)"
                                         />
                                     </template>
                                     <template v-else>

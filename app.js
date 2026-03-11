@@ -153,7 +153,10 @@ const app = Vue.createApp({
 
     // Close filters panel and category overlay on outside click
     document.addEventListener('click', (e) => {
-      if (!e.target.closest('.filtersWrapper')) {
+      // If Vue re-rendered during this click (e.g. catLabel replaced by input),
+      // e.target is detached from the DOM. Treat detached targets as inside the panel
+      // to avoid incorrectly closing it.
+      if (e.target.isConnected && !e.target.closest('.filtersWrapper')) {
         this.showCategories = false
       }
       if (!e.target.closest('.categoryOverlay') && !e.target.closest('.manageBtn')) {
@@ -337,22 +340,14 @@ const app = Vue.createApp({
 
     openCategories() {
       this.showCategories = true
-      this.$nextTick(() => {
-        const infoBox = document.querySelector('.infoBox')
-        const panel = document.querySelector('.filtersPanel')
-        if (infoBox && panel) {
-          const rect = infoBox.getBoundingClientRect()
-          panel.style.top = `${rect.bottom + 4}px`
-        }
-      })
     },
 
     switchCategory(categoryId) {
       this.currentCategoryId = categoryId
       this.currentCategory = this.categories[categoryId]?.list ?? []
       this.managingApp = null
-      // Clear selection when switching categories
       this.selectedAppIds = []
+      this.showCategories = false
     },
 
     // ─── Popups ──────────────────────────────────────────────────────────────
@@ -413,6 +408,18 @@ const app = Vue.createApp({
       this.categories[id].label = trimmed
       this.renamingCategory = null
       this.saveCategories()
+    },
+
+    onRenameBlur(id, event) {
+      const panel = document.querySelector('.filtersPanel')
+      const relatedTarget = event.relatedTarget
+      // If focus is moving to another element inside the panel, defer the commit
+      // so that click handlers inside the panel fire first (e.g. startRename on another cat)
+      if (panel && relatedTarget && panel.contains(relatedTarget)) {
+        this.$nextTick(() => this.commitRename(id))
+      } else {
+        this.commitRename(id)
+      }
     },
 
     deleteCategory(id) {

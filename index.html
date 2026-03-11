@@ -11,114 +11,422 @@
 </head>
 
 <body>
-    <div class="container" id="app">
+    <div class="pageWrapper" id="app">
 
-        <!-- Header -->
-        <div class="header">
-            <h1>Apps</h1>
-            <div class="headerControls">
-                <!-- Edit mode toggle -->
-                <div class="editToggle" :class="{ active: editMode }" @click="toggleEditMode">
-                    {{ editMode ? '✓ Done' : '✎ Edit' }}
-                </div>
-                <!-- Filters wrapper -->
-                <div class="filtersWrapper" @mouseleave="showCategories=false">
-                    <div class="infoBox" @mouseover="showCategories=true">Filters</div>
-                    <div class="filtersPanel" v-show="showCategories">
+        <!-- ── Sidebar ───────────────────────────────────────────────────── -->
+        <div class="sidebar" @mouseenter="sidebarExpanded=true" @mouseleave="sidebarExpanded=false"
+             :class="{ expanded: sidebarExpanded }">
 
-                        <!-- Normal mode: just click to switch -->
-                        <template v-if="!editMode">
-                            <div class="filterItem"
-                                 v-for="cat in categories"
-                                 :class="{ activeCategory: currentCategoryId === cat.id }"
-                                 @click="switchCategory(cat.id)">
-                                {{ cat.label }}
-                            </div>
-                        </template>
-
-                        <!-- Edit mode: rename + delete + add -->
-                        <template v-else>
-                            <div class="filterItem editableFilter" v-for="cat in categories" :key="cat.id">
-                                <!-- Rename input -->
-                                <template v-if="renamingCategory === cat.id">
-                                    <input
-                                        :id="`rename-input-${cat.id}`"
-                                        v-model="renameValue"
-                                        class="renameInput"
-                                        @keyup.enter="commitRename(cat.id)"
-                                        @keyup.escape="renamingCategory = null"
-                                        @blur="commitRename(cat.id)"
-                                    />
-                                </template>
-                                <template v-else>
-                                    <span class="catLabel" @click="startRename(cat.id, cat.label)">{{ cat.label }}</span>
-                                    <button class="catDelete" v-if="cat.id !== 'All'" @click="deleteCategory(cat.id)">×</button>
-                                </template>
-                            </div>
-                            <!-- Add new category -->
-                            <div class="filterItem addCategory" @click="createCategory">+ New</div>
-                        </template>
-
-                    </div>
+            <!-- Recent -->
+            <div class="sidebarSection" v-if="settings.showRecent">
+                <div class="sidebarLabel">Recent</div>
+                <div class="sidebarEmpty" v-if="recentApps.length === 0">—</div>
+                <div class="sidebarItem" v-for="app in recentApps" :key="'r'+app.id"
+                     @click="handleAppClick(app)" :title="app.name">
+                    <img :src="app.image" :alt="app.name" class="sidebarImg">
+                    <span class="sidebarItemLabel">
+                        <span class="sidebarItemName">{{ app.name }}</span>
+                    </span>
                 </div>
             </div>
+
+            <div class="sidebarDivider"></div>
+
+            <!-- Most Used -->
+            <div class="sidebarSection" v-if="settings.showMostUsed">
+                <div class="sidebarLabel">Most Used</div>
+                <div class="sidebarEmpty" v-if="mostUsedApps.length === 0">—</div>
+                <div class="sidebarItem" v-for="app in mostUsedApps" :key="'m'+app.id"
+                     @click="handleAppClick(app)" :title="app.name">
+                    <img :src="app.image" :alt="app.name" class="sidebarImg">
+                    <span class="sidebarItemLabel">
+                        <span class="sidebarItemName">{{ app.name }}</span>
+                        <span class="sidebarClicks">{{ app.clicks }} clicks</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Settings button -->
+            <div class="sidebarBottom">
+                <div class="sidebarItem sidebarSettingsBtn" @click="openSettings" title="Settings">
+                    <span class="sidebarSettingsIcon">⚙</span>
+                    <span class="sidebarItemLabel">
+                        <span class="sidebarItemName">Settings</span>
+                    </span>
+                </div>
+            </div>
+
         </div>
 
-        <!-- App grid -->
-        <div class="app-list">
-            <div class="application"
-                 v-for="app in currentCategory"
-                 :key="app.id"
-                 @mouseenter="setPopup(app.id, true)"
-                 @mouseleave="setPopup(app.id, false)"
-                 :draggable="editMode ? 'true' : 'false'"
-                 @dragstart="editMode && onDragStart(app.id)"
-                 @dragover="editMode && onDragOver($event)"
-                 @drop="editMode && onDrop(app.id)"
-                 :class="{ dragging: dragSrcId === app.id }">
+        <!-- ── Main content ───────────────────────────────────────────────── -->
+        <div class="mainContent">
 
-                <!-- App box -->
-                <a :href="app.link" class="appLink" @click="editMode ? $event.preventDefault() : null">
-                    <div class="appBox" :data-id="app.id">
-                        <img :src="app.image" :alt="app.name" width=150 height=150>
-
-                        <!-- Edit mode overlays -->
-                        <div class="editOverlay" v-if="editMode">
-                            <span class="dragHandle">⠿</span>
-                            <button class="deleteAppBtn" @click.stop.prevent="deleteApp(app.id)">🗑</button>
-                            <button class="manageBtn" @click.stop.prevent="toggleManageApp(app.id)">⚙</button>
+            <!-- Header -->
+            <div class="header">
+                <h1>Apps</h1>
+                <div class="searchWrapper">
+                    <input
+                        id="searchInput"
+                        class="searchInput"
+                        type="text"
+                        placeholder="Search apps…"
+                        v-model="searchQuery"
+                        @keyup.escape="searchQuery = ''"
+                        autocomplete="off"
+                    />
+                    <span class="searchShortcut" v-if="!searchQuery">/</span>
+                    <button class="searchClear" v-if="searchQuery" @click="searchQuery = ''">✕</button>
+                </div>
+                <div class="headerControls">
+                    <div class="shortcutsHint" title="Keyboard shortcuts">
+                        <span class="shortcutsHintIcon">⌨</span>
+                        <div class="shortcutsTooltip">
+                            <div class="shortcutRow"><kbd>/</kbd> Focus search</div>
+                            <div class="shortcutRow"><kbd>Esc</kbd> Clear / close</div>
+                            <div class="shortcutRow"><kbd>E</kbd> Toggle edit mode</div>
+                            <div class="shortcutRow"><kbd>B</kbd> Bulk select (in edit)</div>
                         </div>
                     </div>
-                </a>
+                    <div class="editToggle" :class="{ active: editMode }" @click="toggleEditMode">
+                        {{ editMode ? '✓ Done' : '✎ Edit' }}
+                    </div>
+                    <div class="editToggle newAppBtn"
+                         v-if="editMode"
+                         @click="openNewAppModal"
+                         title="Create a new app">
+                        + New App
+                    </div>
+                    <div class="editToggle bulkSelectBtn"
+                         v-if="editMode"
+                         :class="{ active: bulkSelectMode }"
+                         @click="toggleBulkSelect"
+                         title="Select multiple apps to bulk-assign categories (B)">
+                        {{ bulkSelectMode ? '✕ Cancel' : '☑ Select' }}
+                    </div>
+                    <div class="filtersWrapper" @mouseleave="showCategories=false">
+                        <div class="infoBox" @mouseover="openCategories()">Filters</div>
+                        <transition name="panel-drop">
+                        <div class="filtersPanel" v-show="showCategories">
 
-                <!-- Category checkbox overlay -->
-                <div class="categoryOverlay" v-if="editMode && managingApp === app.id">
-                    <div class="categoryOverlayTitle">Categories</div>
-                    <label class="categoryCheck"
-                           v-for="cat in categories"
-                           :key="cat.id"
-                           :class="{ disabled: cat.id === 'All' }">
-                        <input
-                            type="checkbox"
-                            :checked="appInCategory(app.id, cat.id)"
-                            :disabled="cat.id === 'All'"
-                            @change="toggleAppInCategory(app.id, cat.id)"
-                        />
-                        {{ cat.label }}
-                    </label>
+                            <template v-if="!editMode">
+                                <div class="filterItem"
+                                     v-for="cat in categories"
+                                     :class="{ activeCategory: currentCategoryId === cat.id }"
+                                     @click="switchCategory(cat.id)">
+                                    {{ cat.label }}
+                                </div>
+                            </template>
+
+                            <template v-else>
+                                <div class="filterItem editableFilter" v-for="cat in categories" :key="cat.id">
+                                    <template v-if="renamingCategory === cat.id">
+                                        <input
+                                            :id="`rename-input-${cat.id}`"
+                                            v-model="renameValue"
+                                            class="renameInput"
+                                            @keyup.enter="commitRename(cat.id)"
+                                            @keyup.escape="renamingCategory = null"
+                                            @blur="commitRename(cat.id)"
+                                        />
+                                    </template>
+                                    <template v-else>
+                                        <span class="catLabel" @click="startRename(cat.id, cat.label)">{{ cat.label }}</span>
+                                        <button class="catDelete" v-if="cat.id !== 'All'" @click="confirmDeleteCategory(cat.id)">×</button>
+                                    </template>
+                                </div>
+                                <div class="filterItem addCategory" @click="createCategory">+ New</div>
+                            </template>
+
+                        </div>
+                        </transition>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bulk select bar -->
+            <transition name="bar-slide">
+            <div class="bulkBar" v-if="bulkSelectMode">
+                <span class="bulkCount">
+                    {{ selectedAppIds.length }} app{{ selectedAppIds.length !== 1 ? 's' : '' }} selected
+                </span>
+                <button class="bulkBarBtn" @click="selectAll">Select all</button>
+                <button class="bulkBarBtn" @click="deselectAll" :disabled="selectedAppIds.length === 0">Deselect all</button>
+                <div class="bulkPanelWrapper">
+                    <button class="bulkBarBtn bulkBarBtnPrimary bulkPanelBtn"
+                            :disabled="selectedAppIds.length === 0"
+                            @click.stop="openBulkPanel">
+                        Assign categories ▾
+                    </button>
+                    <div class="bulkPanel" v-show="showBulkPanel" @click.stop>
+                        <div class="bulkPanelTitle">Assign / remove categories</div>
+                        <div class="bulkPanelHint">Click to toggle for all selected apps</div>
+                        <div class="bulkCatList">
+                            <div class="bulkCatItem"
+                                 v-for="cat in categories"
+                                 :key="cat.id"
+                                 :class="['bulkCatState-' + (bulkCategoryStates[cat.id] || 'none'), { disabled: cat.id === 'All' }]"
+                                 @click="bulkToggleCategory(cat.id)">
+                                <span class="bulkCatCheck">
+                                    <span v-if="bulkCategoryStates[cat.id] === 'all'">✓</span>
+                                    <span v-else-if="bulkCategoryStates[cat.id] === 'some'">–</span>
+                                    <span v-else>&nbsp;</span>
+                                </span>
+                                <span class="bulkCatLabel">{{ cat.label }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </transition>
+
+            <!-- App grid -->
+            <transition name="grid-fade" mode="out-in">
+            <div class="app-list" :key="currentCategoryId + (isSearching ? '__search' : '')">
+                <div class="emptyState" v-if="filteredApps.length === 0">
+                    <template v-if="isSearching">
+                        <div class="emptyStateIcon">&#128269;</div>
+                        <div class="emptyStateTitle">No results for "{{ searchQuery }}"</div>
+                        <div class="emptyStateHint">Try a different spelling, or search by description.</div>
+                        <button class="emptyStateAction" @click="searchQuery = ''">Clear search</button>
+                    </template>
+                    <template v-else-if="editMode">
+                        <div class="emptyStateIcon">&#128194;</div>
+                        <div class="emptyStateTitle">This category is empty</div>
+                        <div class="emptyStateHint">Open the <strong>&#9881;</strong> menu on any app to add it here, or use <strong>&#9745; Select</strong> to bulk-assign apps.</div>
+                    </template>
+                    <template v-else>
+                        <div class="emptyStateIcon">&#128194;</div>
+                        <div class="emptyStateTitle">Nothing here yet</div>
+                        <div class="emptyStateHint">Switch to <strong>&#9998; Edit</strong> mode to add apps to this category.</div>
+                        <button class="emptyStateAction" @click="switchCategory('All')">Browse all apps</button>
+                    </template>
+                </div>
+                <div class="application"
+                     v-for="app in filteredApps"
+                     :key="app.id"
+                     @mouseenter="setPopup(app.id, true)"
+                     @mouseleave="setPopup(app.id, false)"
+                     :draggable="editMode && !bulkSelectMode ? 'true' : 'false'"
+                     @dragstart="editMode && !bulkSelectMode && onDragStart(app.id)"
+                     @dragover="editMode && !bulkSelectMode && onDragOver($event)"
+                     @drop="editMode && !bulkSelectMode && onDrop(app.id)"
+                     :class="{ dragging: dragSrcId === app.id, bulkSelected: isAppSelected(app.id), bulkSelectable: bulkSelectMode }">
+
+                    <div class="appBox" :data-id="app.id"
+                         @click="bulkSelectMode ? toggleAppSelection(app.id) : (!editMode && handleAppClick(app))">
+                        <img :src="app.image" :alt="app.name" width=150 height=150>
+                        <div class="editOverlay" v-if="editMode && !bulkSelectMode">
+                            <span class="dragHandle">⠿</span>
+                            <button class="deleteAppBtn" @click.stop="confirmDeleteApp(app.id)">🗑</button>
+                            <button class="manageBtn" @click.stop="toggleManageApp(app.id)">⚙</button>
+                        </div>
+                        <div class="bulkSelectOverlay" v-if="bulkSelectMode">
+                            <span class="bulkCheckbox" :class="{ checked: isAppSelected(app.id) }">
+                                {{ isAppSelected(app.id) ? '✓' : '' }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="appName">{{ app.name }}</div>
+
+                    <div class="categoryOverlay" v-if="editMode && managingApp === app.id"
+                         :class="{ flipped: flippedPopups[app.id], flippedUp: flippedUpOverlays[app.id] }"
+                         @click.stop>
+                        <div class="categoryOverlayTitle">Categories</div>
+                        <label class="categoryCheck"
+                               v-for="cat in categories"
+                               :key="cat.id"
+                               :class="{ disabled: cat.id === 'All' }">
+                            <input
+                                type="checkbox"
+                                :checked="appInCategory(app.id, cat.id)"
+                                :disabled="cat.id === 'All'"
+                                @change="toggleAppInCategory(app.id, cat.id)"
+                            />
+                            {{ cat.label }}
+                        </label>
+                    </div>
+
+                    <div class="popUpBox"
+                         v-show="showPopups[app.id]"
+                         :class="{ flipped: flippedPopups[app.id] }">
+                        <strong>{{ app.name }}</strong><br>
+                        {{ app.description }}<br>
+                        <em>{{ app.function }}</em>
+                    </div>
+
+                </div>
+            </div>
+            </transition>
+
+        </div>
+        <!-- New App Modal -->
+        <transition name="modal-fade">
+        <div class="settingsOverlay" v-if="showNewAppModal" @click.self="closeNewAppModal">
+            <div class="settingsPanel newAppPanel">
+                <div class="settingsHeader">
+                    <h2>{{ editingAppId ? 'Edit App' : 'New App' }}</h2>
+                    <button class="settingsClose" @click="closeNewAppModal">&#10005;</button>
                 </div>
 
-                <!-- Description popup (normal mode only) -->
-                <div class="popUpBox"
-                     v-show="showPopups[app.id]"
-                     :class="{ flipped: flippedPopups[app.id] }">
-                    <strong>{{ app.name }}</strong><br>
-                    {{ app.description }}<br>
-                    <em>{{ app.function }}</em>
+                <div class="settingsSection">
+                    <div class="settingsSectionTitle">Identity</div>
+                    <div class="newAppRow">
+                        <label class="newAppLabel">Name <span class="newAppRequired">*</span></label>
+                        <input class="newAppInput" v-model="newApp.name" placeholder="My Application" @input="autoSlugImage" />
+                    </div>
+                    <div class="newAppRow">
+                        <label class="newAppLabel">Link <span class="newAppRequired">*</span></label>
+                        <input class="newAppInput" v-model="newApp.link" placeholder="https://..." />
+                    </div>
+                    <div class="newAppRow">
+                        <label class="newAppLabel">Image URL</label>
+                        <div class="newAppImageRow">
+                            <input class="newAppInput" v-model="newApp.image" placeholder="images/my_app.png" />
+                            <div class="newAppImagePreview">
+                                <img v-if="newApp.image" :src="newApp.image" alt="preview"
+                                     @error="newApp.imageError=true" @load="newApp.imageError=false" />
+                                <span v-if="!newApp.image || newApp.imageError" class="newAppImagePlaceholder">?</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settingsSection">
+                    <div class="settingsSectionTitle">Details</div>
+                    <div class="newAppRow">
+                        <label class="newAppLabel">Description</label>
+                        <textarea class="newAppInput newAppTextarea" v-model="newApp.description" placeholder="What does this app do?"></textarea>
+                    </div>
+                    <div class="newAppRow">
+                        <label class="newAppLabel">Function / Tag</label>
+                        <input class="newAppInput" v-model="newApp.function" placeholder="e.g. Analytics" />
+                    </div>
+                </div>
+
+                <div class="settingsSection">
+                    <div class="settingsSectionTitle">Categories</div>
+                    <div class="newAppCatGrid">
+                        <label class="categoryCheck"
+                               v-for="cat in categories"
+                               :key="cat.id"
+                               :class="{ disabled: cat.id === 'All' }">
+                            <input type="checkbox"
+                                   :disabled="cat.id === 'All'"
+                                   v-model="newApp.categoryIds"
+                                   :value="cat.id" />
+                            {{ cat.label }}
+                        </label>
+                    </div>
+                </div>
+
+                <div class="newAppFooter">
+                    <span class="newAppError" v-if="newApp.error">{{ newApp.error }}</span>
+                    <button class="confirmBtn confirmCancel" @click="closeNewAppModal">Cancel</button>
+                    <button class="confirmBtn newAppSaveBtn" @click="saveNewApp" :disabled="newApp.saving">
+                        {{ newApp.saving ? 'Saving…' : (editingAppId ? 'Save changes' : 'Create app') }}
+                    </button>
+                </div>
+            </div>
+        </div>
+        </transition>
+
+        <!-- Confirmation Dialog -->
+        <transition name="modal-fade">
+        <div class="confirmOverlay" v-if="confirm.visible" @click.self="cancelConfirm">
+            <div class="confirmPanel">
+                <div class="confirmIcon">{{ confirm.icon }}</div>
+                <div class="confirmTitle">{{ confirm.title }}</div>
+                <div class="confirmMessage">{{ confirm.message }}</div>
+                <div class="confirmActions">
+                    <button class="confirmBtn confirmCancel" @click="cancelConfirm">Cancel</button>
+                    <button class="confirmBtn confirmOk" @click="okConfirm">{{ confirm.okLabel || 'Delete' }}</button>
+                </div>
+            </div>
+        </div>
+        </transition>
+
+        <!-- Settings Modal -->
+        <transition name="modal-fade">
+        <div class="settingsOverlay" v-if="showSettings" @click.self="closeSettings">
+            <div class="settingsPanel">
+                <div class="settingsHeader">
+                    <h2>Settings</h2>
+                    <button class="settingsClose" @click="closeSettings">✕</button>
+                </div>
+
+                <!-- Theme -->
+                <div class="settingsSection">
+                    <div class="settingsSectionTitle">Appearance</div>
+                    <div class="settingsRow">
+                        <label class="settingsLabel">Theme</label>
+                        <div class="settingsOptions">
+                            <button class="settingsOption"
+                                    :class="{ active: settings.theme === 'light' }"
+                                    @click="settings.theme = 'light'; saveSettings()">☀ Light</button>
+                            <button class="settingsOption"
+                                    :class="{ active: settings.theme === 'dark' }"
+                                    @click="settings.theme = 'dark'; saveSettings()">🌙 Dark</button>
+                            <button class="settingsOption"
+                                    :class="{ active: settings.theme === 'blue' }"
+                                    @click="settings.theme = 'blue'; saveSettings()">🔵 Blue</button>
+                        </div>
+                    </div>
+                    <div class="settingsRow">
+                        <label class="settingsLabel">Grid Density</label>
+                        <div class="settingsOptions">
+                            <button class="settingsOption"
+                                    :class="{ active: settings.gridDensity === 'compact' }"
+                                    @click="settings.gridDensity = 'compact'; saveSettings()">Compact</button>
+                            <button class="settingsOption"
+                                    :class="{ active: settings.gridDensity === 'comfortable' }"
+                                    @click="settings.gridDensity = 'comfortable'; saveSettings()">Comfortable</button>
+                            <button class="settingsOption"
+                                    :class="{ active: settings.gridDensity === 'spacious' }"
+                                    @click="settings.gridDensity = 'spacious'; saveSettings()">Spacious</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Default Category -->
+                <div class="settingsSection">
+                    <div class="settingsSectionTitle">Navigation</div>
+                    <div class="settingsRow">
+                        <label class="settingsLabel">Default Category</label>
+                        <select class="settingsSelect"
+                                v-model="settings.defaultCategory"
+                                @change="saveSettings()">
+                            <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+                                {{ cat.label }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="settingsSection">
+                    <div class="settingsSectionTitle">Sidebar</div>
+                    <div class="settingsRow">
+                        <label class="settingsLabel">Show "Recent"</label>
+                        <div class="settingsToggle"
+                             :class="{ on: settings.showRecent }"
+                             @click="settings.showRecent = !settings.showRecent; saveSettings()">
+                            <div class="settingsToggleKnob"></div>
+                        </div>
+                    </div>
+                    <div class="settingsRow">
+                        <label class="settingsLabel">Show "Most Used"</label>
+                        <div class="settingsToggle"
+                             :class="{ on: settings.showMostUsed }"
+                             @click="settings.showMostUsed = !settings.showMostUsed; saveSettings()">
+                            <div class="settingsToggleKnob"></div>
+                        </div>
+                    </div>
                 </div>
 
             </div>
         </div>
+        </transition>
+
     </div>
     <script src="app.js"></script>
 </body>

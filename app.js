@@ -452,10 +452,6 @@ const app = Vue.createApp({
     },
 
     deleteApp(appId) {
-      for (const [key, cat] of Object.entries(this.categories)) {
-        if (key === "All") continue
-        cat.list = cat.list.filter(a => a.id !== appId)
-      }
       if (this.currentCategoryId !== "All") {
         this.currentCategory = this.currentCategory.filter(a => a.id !== appId)
       }
@@ -746,7 +742,7 @@ const app = Vue.createApp({
       this.showConfirm({
         icon: '🗑',
         title: 'Remove app?',
-        message: `"${app?.name ?? appId}" will be removed from all categories. This cannot be undone.`,
+        message: `"${app?.name ?? appId}" will be removed from this category. It will still exist in other categories and in the main list.`,
         okLabel: 'Remove',
         onOk: () => this.deleteApp(appId)
       })

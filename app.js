@@ -57,6 +57,35 @@ const app = Vue.createApp({
       // Search
       searchQuery: "",
 
+      // Announcements
+      showAnnouncements: false,
+      announcements: [
+        {
+          id: 1,
+          title: "Scheduled Maintenance",
+          body: "The platform will be offline for maintenance on Saturday, March 22 from 2–4 AM EST.",
+          date: "2026-03-20",
+          type: "warning",
+          read: false,
+        },
+        {
+          id: 2,
+          title: "New App Available: DataViz Pro",
+          body: "DataViz Pro has been added to the catalogue. Check it out under Analytics.",
+          date: "2026-03-18",
+          type: "info",
+          read: false,
+        },
+        {
+          id: 3,
+          title: "Welcome to JCRS-D!",
+          body: "Use the sidebar to quickly access recent and most-used apps. Tip: press / to search.",
+          date: "2026-03-01",
+          type: "info",
+          read: true,
+        },
+      ],
+
       // Settings
       showSettings: false,
       settings: {
@@ -65,6 +94,42 @@ const app = Vue.createApp({
         gridDensity: 'comfortable',
         showRecent: true,
         showMostUsed: true,
+        showDashboard: true,
+        dashboardWidgets: {
+          systemStatus: true,
+          cpuMemory:    true,
+          services:     true,
+          recentAlerts: true,
+        },
+      },
+
+      // ── System health (hardcoded; replace with API later) ──────
+      health: {
+        systemStatus: {
+          overall: 'healthy',
+          uptime: '99.97%',
+          since: '2026-01-14',
+          lastChecked: '2 min ago',
+        },
+        cpu:    { used: 42, label: '42%' },
+        memory: { used: 67, label: '6.7 / 10 GB' },
+        disk:   { used: 55, label: '275 / 500 GB' },
+        services: [
+          { name: 'API Gateway',        status: 'up',       latency: '18ms'  },
+          { name: 'Auth Service',       status: 'up',       latency: '24ms'  },
+          { name: 'Database (primary)', status: 'up',       latency: '5ms'   },
+          { name: 'Database (replica)', status: 'up',       latency: '7ms'   },
+          { name: 'File Storage',       status: 'degraded', latency: '210ms' },
+          { name: 'Email Service',      status: 'up',       latency: '45ms'  },
+          { name: 'Cache (Redis)',      status: 'up',       latency: '1ms'   },
+          { name: 'Job Queue',          status: 'up',       latency: '12ms'  },
+        ],
+        alerts: [
+          { id: 1, severity: 'warning', message: 'File Storage latency elevated (>200ms)',         time: '8 min ago'  },
+          { id: 2, severity: 'info',    message: 'Scheduled backup completed successfully',        time: '1 hr ago'   },
+          { id: 3, severity: 'info',    message: 'Database replica resync finished',               time: '3 hrs ago'  },
+          { id: 4, severity: 'error',   message: 'Email Service: 3 delivery failures (resolved)',  time: '6 hrs ago'  },
+        ],
       },
     }
   },
@@ -90,6 +155,9 @@ const app = Vue.createApp({
     },
     isSearching() {
       return this.searchQuery.trim().length > 0
+    },
+    unreadCount() {
+      return this.announcements.filter(a => !a.read).length
     },
     // For bulk panel: which categories have ALL selected apps, SOME, or NONE
     bulkCategoryStates() {
@@ -583,6 +651,20 @@ const app = Vue.createApp({
 
       // Grid density
       document.body.dataset.density = this.settings.gridDensity
+    },
+
+    openAnnouncements() {
+      this.showAnnouncements = true
+    },
+    closeAnnouncements() {
+      this.showAnnouncements = false
+    },
+    markAllRead() {
+      this.announcements.forEach(a => a.read = true)
+    },
+    markRead(id) {
+      const a = this.announcements.find(a => a.id === id)
+      if (a) a.read = true
     },
 
     openSettings() {

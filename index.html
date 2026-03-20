@@ -17,6 +17,18 @@
         <div class="sidebar" @mouseenter="sidebarExpanded=true" @mouseleave="sidebarExpanded=false"
              :class="{ expanded: sidebarExpanded }">
 
+             <!-- Announcements button -->
+            <div class="sidebarItem sidebarAnnouncementsBtn" @click="openAnnouncements" title="Announcements">
+                <span class="sidebarAnnouncementsIcon">
+                    📣
+                    <span class="announcementBadge" v-if="unreadCount > 0">{{ unreadCount }}</span>
+                </span>
+                <span class="sidebarItemLabel">
+                    <span class="sidebarItemName">Announcements</span>
+                    <span class="sidebarClicks" v-if="unreadCount > 0">{{ unreadCount }} unread</span>
+                </span>
+            </div>
+
             <!-- Recent -->
             <div class="sidebarSection" v-if="settings.showRecent">
                 <div class="sidebarLabel">Recent</div>
@@ -258,6 +270,88 @@
             </div>
             </transition>
 
+        <!-- ── System Health Dashboard ──────────────────────────────── -->
+        <div class="dashboardSection" v-if="settings.showDashboard">
+            <div class="dashboardHeader">
+                <h2 class="dashboardTitle">System Health</h2>
+                <span class="dashboardChecked">Last checked {{ health.systemStatus.lastChecked }}</span>
+            </div>
+            <div class="dashboardWidgets">
+
+                <!-- Overall Status -->
+                <div class="dashWidget dashWidgetStatus" v-if="settings.dashboardWidgets.systemStatus">
+                    <div class="dashWidgetLabel">Overall Status</div>
+                    <div class="dashStatusBadge" :class="'status-' + health.systemStatus.overall">
+                        <span class="dashStatusDot"></span>
+                        {{ health.systemStatus.overall.charAt(0).toUpperCase() + health.systemStatus.overall.slice(1) }}
+                    </div>
+                    <div class="dashStatusMeta">
+                        <span>Uptime <strong>{{ health.systemStatus.uptime }}</strong></span>
+                        <span>Since {{ health.systemStatus.since }}</span>
+                    </div>
+                </div>
+
+                <!-- CPU / Memory / Disk -->
+                <div class="dashWidget dashWidgetMetrics" v-if="settings.dashboardWidgets.cpuMemory">
+                    <div class="dashWidgetLabel">Resources</div>
+                    <div class="dashMetricRow">
+                        <span class="dashMetricName">CPU</span>
+                        <div class="dashBar"><div class="dashBarFill" :class="health.cpu.used > 80 ? 'danger' : health.cpu.used > 60 ? 'warn' : 'ok'" :style="{ width: health.cpu.used + '%' }"></div></div>
+                        <span class="dashMetricValue">{{ health.cpu.label }}</span>
+                    </div>
+                    <div class="dashMetricRow">
+                        <span class="dashMetricName">Memory</span>
+                        <div class="dashBar"><div class="dashBarFill" :class="health.memory.used > 80 ? 'danger' : health.memory.used > 60 ? 'warn' : 'ok'" :style="{ width: health.memory.used + '%' }"></div></div>
+                        <span class="dashMetricValue">{{ health.memory.label }}</span>
+                    </div>
+                    <div class="dashMetricRow">
+                        <span class="dashMetricName">Disk</span>
+                        <div class="dashBar"><div class="dashBarFill" :class="health.disk.used > 80 ? 'danger' : health.disk.used > 60 ? 'warn' : 'ok'" :style="{ width: health.disk.used + '%' }"></div></div>
+                        <span class="dashMetricValue">{{ health.disk.label }}</span>
+                    </div>
+                </div>
+
+                <!-- Services -->
+                <div class="dashWidget dashWidgetServices" v-if="settings.dashboardWidgets.services">
+                    <div class="dashWidgetLabel">Services
+                        <span class="dashServicesCount">
+                            <span class="dashServicesDot ok"></span>{{ health.services.filter(s => s.status === 'up').length }} up
+                        </span>
+                        <span class="dashServicesCount" v-if="health.services.some(s => s.status === 'degraded')">
+                            <span class="dashServicesDot warn"></span>{{ health.services.filter(s => s.status === 'degraded').length }} degraded
+                        </span>
+                        <span class="dashServicesCount" v-if="health.services.some(s => s.status === 'down')">
+                            <span class="dashServicesDot danger"></span>{{ health.services.filter(s => s.status === 'down').length }} down
+                        </span>
+                    </div>
+                    <div class="dashServiceList">
+                        <div class="dashServiceRow" v-for="svc in health.services" :key="svc.name">
+                            <span class="dashServiceDot" :class="svc.status"></span>
+                            <span class="dashServiceName">{{ svc.name }}</span>
+                            <span class="dashServiceLatency">{{ svc.latency }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Alerts -->
+                <div class="dashWidget dashWidgetAlerts" v-if="settings.dashboardWidgets.recentAlerts">
+                    <div class="dashWidgetLabel">Recent Alerts</div>
+                    <div class="dashAlertList">
+                        <div class="dashAlertRow" v-for="alert in health.alerts" :key="alert.id" :class="'alert-' + alert.severity">
+                            <span class="dashAlertIcon">
+                                <span v-if="alert.severity === 'error'">✕</span>
+                                <span v-else-if="alert.severity === 'warning'">!</span>
+                                <span v-else>i</span>
+                            </span>
+                            <span class="dashAlertMessage">{{ alert.message }}</span>
+                            <span class="dashAlertTime">{{ alert.time }}</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
         </div>
         <!-- New App Modal -->
         <transition name="modal-fade">
@@ -345,6 +439,39 @@
         </div>
         </transition>
 
+        <!-- Announcements Modal -->
+        <transition name="modal-fade">
+        <div class="settingsOverlay" v-if="showAnnouncements" @click.self="closeAnnouncements">
+            <div class="settingsPanel announcementsPanel">
+                <div class="settingsHeader">
+                    <h2>📣 Announcements</h2>
+                    <div style="display:flex;gap:8px;align-items:center">
+                        <button class="markAllReadBtn" v-if="unreadCount > 0" @click="markAllRead">Mark all read</button>
+                        <button class="settingsClose" @click="closeAnnouncements">✕</button>
+                    </div>
+                </div>
+                <div class="announcementsList">
+                    <div
+                        v-for="a in announcements"
+                        :key="a.id"
+                        class="announcementItem"
+                        :class="['announcement-' + a.type, { unread: !a.read }]"
+                        @click="markRead(a.id)">
+                        <div class="announcementDot" v-if="!a.read"></div>
+                        <div class="announcementContent">
+                            <div class="announcementTitle">{{ a.title }}</div>
+                            <div class="announcementBody">{{ a.body }}</div>
+                            <div class="announcementDate">{{ a.date }}</div>
+                        </div>
+                    </div>
+                    <div class="announcementsEmpty" v-if="announcements.length === 0">
+                        No announcements yet.
+                    </div>
+                </div>
+            </div>
+        </div>
+        </transition>
+
         <!-- Settings Modal -->
         <transition name="modal-fade">
         <div class="settingsOverlay" v-if="showSettings" @click.self="closeSettings">
@@ -421,6 +548,39 @@
                             <div class="settingsToggleKnob"></div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Dashboard -->
+                <div class="settingsSection">
+                    <div class="settingsSectionTitle">Dashboard</div>
+                    <div class="settingsRow">
+                        <label class="settingsLabel">Show System Health Dashboard</label>
+                        <div class="settingsToggle"
+                             :class="{ on: settings.showDashboard }"
+                             @click="settings.showDashboard = !settings.showDashboard; saveSettings()">
+                            <div class="settingsToggleKnob"></div>
+                        </div>
+                    </div>
+                    <template v-if="settings.showDashboard">
+                        <div class="settingsSectionSubtitle">Visible widgets</div>
+                        <div class="dashWidgetToggles">
+                            <label class="dashWidgetToggleItem"
+                                   v-for="(enabled, key) in settings.dashboardWidgets"
+                                   :key="key"
+                                   @click="settings.dashboardWidgets[key] = !settings.dashboardWidgets[key]; saveSettings()">
+                                <div class="settingsToggle" style="width:34px;height:20px;border-radius:10px;"
+                                     :class="{ on: settings.dashboardWidgets[key] }">
+                                    <div class="settingsToggleKnob" style="width:12px;height:12px;"></div>
+                                </div>
+                                <span class="dashWidgetToggleLabel">{{
+                                    key === 'systemStatus' ? 'Overall Status' :
+                                    key === 'cpuMemory'    ? 'CPU / Memory / Disk' :
+                                    key === 'services'     ? 'Services' :
+                                    key === 'recentAlerts' ? 'Recent Alerts' : key
+                                }}</span>
+                            </label>
+                        </div>
+                    </template>
                 </div>
 
             </div>

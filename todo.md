@@ -8,4 +8,4 @@
 - [ ] Remove filters and implement categories some other way
 - [ ] Add way to access documentation
 - [ ] Remove add apps
-- [ ] Search should also search based on description
+- [X] Search should also search based on description

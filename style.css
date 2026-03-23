@@ -14,11 +14,11 @@
 
     /* Sidebar */
     --sidebar-bg:   #1e2235;
-    --sidebar-text: #a8afc8;
+    --sidebar-text: #c0c8e8;
     --sidebar-acc:  #ffffff;
     --sidebar-hover:#2d3350;
-    --sidebar-div:  #2d3350;
-    --sidebar-label:#5a6280;
+    --sidebar-div:  #3a4060;
+    --sidebar-label:#8892b0;
 
     /* Accent */
     --acc:          #5b6cf9;
@@ -115,6 +115,12 @@ body {
     padding: 4px 14px 8px;
     white-space: nowrap;
     overflow: hidden;
+    transition: opacity 0.15s;
+}
+
+.sidebar:not(.expanded) .sidebarLabel,
+.sidebar:not(.expanded) .sidebarEmpty {
+    opacity: 0;
 }
 
 .sidebarDivider {
@@ -141,7 +147,6 @@ body {
     transition: background 0.15s;
     white-space: nowrap;
     overflow: hidden;
-    border-radius: 0;
     margin: 1px 6px;
     border-radius: var(--r-sm);
 }
@@ -278,131 +283,6 @@ body {
     background: #fff3b0;
 }
 
-/* ── New app / Bulk select buttons ───────────────────────────── */
-.newAppBtn {
-    background: var(--green-light);
-    border-color: var(--green);
-    color: #0e6640;
-    min-width: 96px;
-}
-.newAppBtn:hover {
-    background: #cdf5e3;
-    border-color: #1aac69;
-}
-
-.bulkSelectBtn        { min-width: 96px; }
-.bulkSelectBtn.active {
-    background: var(--red-light);
-    border-color: var(--red);
-    color: #8a1010;
-}
-.bulkSelectBtn.active:hover { background: #fde0e0; }
-
-/* ── Filters ─────────────────────────────────────────────────── */
-.filtersWrapper {
-    position: relative;
-}
-
-.infoBox {
-    height: 40px;
-    padding: 0 16px;
-    background: var(--acc);
-    border: none;
-    border-radius: var(--r-md);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    user-select: none;
-    color: #fff;
-    font-weight: 600;
-    font-size: 13px;
-    box-shadow: var(--shadow-sm);
-    transition: background 0.15s, box-shadow 0.15s;
-    min-width: 100px;
-}
-
-.infoBox:hover {
-    background: var(--acc-hover);
-    box-shadow: var(--shadow-md);
-}
-
-.filtersPanel {
-    position: absolute;
-    top: calc(100% + 8px);
-    right: 0;
-    width: min(380px, calc(100vw - 32px));
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--r-lg);
-    padding: 14px;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-    gap: 8px;
-    z-index: 200;
-    box-shadow: var(--shadow-xl);
-}
-
-.filterItem {
-    padding: 8px 10px;
-    background: var(--surface-2);
-    border: 1.5px solid var(--border);
-    border-radius: var(--r-sm);
-    cursor: pointer;
-    text-align: center;
-    user-select: none;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-primary);
-    transition: background 0.12s, border-color 0.12s;
-}
-
-.filterItem:hover          { background: var(--acc-light); border-color: var(--acc); color: var(--acc); }
-.filterItem.activeCategory { background: var(--acc); border-color: var(--acc); color: #fff; font-weight: 600; }
-
-.editableFilter {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 4px;
-    background: var(--yellow-light);
-    border-color: #e0c050;
-}
-
-.catLabel       { flex: 1; cursor: text; }
-.catLabel:hover { text-decoration: underline dotted; }
-
-.catDelete {
-    background: none;
-    border: none;
-    font-size: 15px;
-    cursor: pointer;
-    color: var(--red);
-    padding: 0 2px;
-    opacity: 0.7;
-    transition: opacity 0.12s;
-}
-.catDelete:hover { opacity: 1; }
-
-.renameInput {
-    flex: 1;
-    border: 1.5px solid var(--border-focus);
-    border-radius: 4px;
-    padding: 2px 6px;
-    font-size: inherit;
-    font-family: inherit;
-    width: 100%;
-    outline: none;
-    background: var(--surface);
-}
-
-.addCategory {
-    background: var(--green-light);
-    border-color: var(--green);
-    border-style: dashed;
-    color: #0e6640;
-}
-.addCategory:hover { background: #cdf5e3; }
 
 /* ════════════════════════════════════════════════════════════════
    SEARCH BAR
@@ -594,7 +474,6 @@ kbd {
     user-select: none;
 }
 
-.deleteAppBtn,
 .manageBtn {
     background: rgba(255,255,255,0.12);
     border: 1px solid rgba(255,255,255,0.2);
@@ -607,7 +486,6 @@ kbd {
     align-items: center;
     justify-content: center;
 }
-.deleteAppBtn:hover { background: rgba(239,69,69,0.6); border-color: rgba(239,69,69,0.5); }
 .manageBtn:hover    { background: rgba(255,255,255,0.25); }
 
 /* ── Category overlay ────────────────────────────────────────── */
@@ -666,10 +544,27 @@ kbd {
     z-index: 10;
     padding: 14px 16px;
     box-shadow: var(--shadow-xl);
-    pointer-events: none;
     font-size: 13px;
     line-height: 1.55;
     color: var(--text-primary);
+}
+
+.popupDocsLink {
+    display: block;
+    margin-top: 10px;
+    color: var(--acc);
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 5px 10px;
+    background: var(--acc-light);
+    border-radius: var(--r-sm);
+    transition: background 0.15s;
+}
+
+.popupDocsLink:hover {
+    background: var(--acc);
+    color: var(--acc-text);
 }
 
 .popUpBox strong {
@@ -707,154 +602,6 @@ kbd {
     color: var(--text-secondary);
 }
 
-/* ════════════════════════════════════════════════════════════════
-   BULK SELECT UI
-════════════════════════════════════════════════════════════════ */
-.bulkBar {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 92%;
-    margin: 0 auto 16px;
-    padding: 10px 16px;
-    background: var(--yellow-light);
-    border: 1.5px solid #e8c000;
-    border-radius: var(--r-lg);
-    flex-wrap: wrap;
-    position: relative;
-    box-shadow: var(--shadow-sm);
-}
-
-.bulkCount {
-    font-weight: 700;
-    font-size: 13.5px;
-    margin-right: 4px;
-    min-width: 100px;
-    color: #6a4c00;
-}
-
-.bulkBarBtn {
-    padding: 6px 14px;
-    border: 1.5px solid var(--border);
-    border-radius: var(--r-sm);
-    background: var(--surface);
-    cursor: pointer;
-    font-size: 12.5px;
-    font-weight: 600;
-    font-family: var(--font-body);
-    transition: background 0.12s, box-shadow 0.12s;
-    color: var(--text-primary);
-}
-.bulkBarBtn:hover:not(:disabled)  { background: var(--surface-2); box-shadow: var(--shadow-sm); }
-.bulkBarBtn:disabled               { opacity: 0.4; cursor: default; }
-.bulkBarBtnPrimary                 { background: var(--acc); color: #fff; border-color: var(--acc); }
-.bulkBarBtnPrimary:hover:not(:disabled) { background: var(--acc-hover); }
-
-.bulkPanelWrapper { position: relative; }
-
-.bulkPanel {
-    position: absolute;
-    top: calc(100% + 8px);
-    left: 0;
-    width: 260px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--r-lg);
-    z-index: 400;
-    box-shadow: var(--shadow-xl);
-    padding: 14px;
-}
-
-.bulkPanelTitle {
-    font-weight: 700;
-    font-size: 13px;
-    margin-bottom: 2px;
-    color: var(--text-primary);
-}
-
-.bulkPanelHint {
-    font-size: 11px;
-    color: var(--text-muted);
-    margin-bottom: 10px;
-}
-
-.bulkCatList {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    max-height: 240px;
-    overflow-y: auto;
-}
-
-.bulkCatItem {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 7px 8px;
-    cursor: pointer;
-    border: 1.5px solid transparent;
-    border-radius: var(--r-sm);
-    transition: background 0.1s;
-    user-select: none;
-}
-.bulkCatItem:hover:not(.disabled)  { background: var(--acc-light); border-color: var(--acc); }
-.bulkCatItem.disabled              { opacity: 0.4; cursor: default; }
-.bulkCatItem.bulkCatState-all      { background: var(--green-light); }
-.bulkCatItem.bulkCatState-some     { background: var(--yellow-light); }
-
-.bulkCatCheck {
-    width: 20px;
-    height: 20px;
-    border: 1.5px solid var(--border);
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: bold;
-    flex-shrink: 0;
-    background: var(--surface-2);
-}
-.bulkCatState-all  .bulkCatCheck { background: var(--acc); color: #fff; border-color: var(--acc); }
-.bulkCatState-some .bulkCatCheck { background: var(--yellow); border-color: #c0a000; color: #6a4c00; }
-
-.bulkCatLabel { font-size: 13px; font-weight: 500; color: var(--text-primary); }
-
-/* Bulk app selection overlay */
-.application.bulkSelectable .appBox { cursor: pointer; }
-
-.bulkSelectOverlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(0,0,0,0.2);
-    display: flex;
-    align-items: flex-start;
-    justify-content: flex-end;
-    padding: 8px;
-    border-radius: var(--r-xl);
-}
-
-.bulkCheckbox {
-    width: 22px;
-    height: 22px;
-    border: 2px solid rgba(255,255,255,0.8);
-    background: rgba(255,255,255,0.2);
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 13px;
-    font-weight: bold;
-    color: white;
-    border-radius: 5px;
-    transition: background 0.1s;
-}
-.bulkCheckbox.checked { background: var(--acc); border-color: var(--acc); }
-
-.application.bulkSelected .appBox {
-    outline: 3px solid var(--acc);
-    outline-offset: 2px;
-}
 
 /* ════════════════════════════════════════════════════════════════
    SETTINGS MODAL
@@ -1017,195 +764,6 @@ kbd {
 }
 .settingsToggle.on .settingsToggleKnob { left: 22px; }
 
-/* ════════════════════════════════════════════════════════════════
-   CONFIRM DIALOG
-════════════════════════════════════════════════════════════════ */
-.confirmOverlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(10,12,24,0.5);
-    backdrop-filter: blur(4px);
-    z-index: 500;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.confirmPanel {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--r-xl);
-    width: min(360px, calc(100vw - 32px));
-    padding: 32px 28px 24px;
-    box-shadow: var(--shadow-xl);
-    text-align: center;
-}
-
-.confirmIcon {
-    font-size: 40px;
-    margin-bottom: 12px;
-    line-height: 1;
-}
-
-.confirmTitle {
-    font-size: 18px;
-    font-weight: 800;
-    margin-bottom: 8px;
-    color: var(--text-primary);
-    letter-spacing: -0.3px;
-}
-
-.confirmMessage {
-    font-size: 14px;
-    color: var(--text-secondary);
-    margin-bottom: 24px;
-    line-height: 1.6;
-}
-
-.confirmActions {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-}
-
-.confirmBtn {
-    padding: 10px 28px;
-    border-radius: var(--r-md);
-    font-size: 14px;
-    font-weight: 700;
-    font-family: var(--font-body);
-    cursor: pointer;
-    transition: background 0.12s, transform 0.08s, box-shadow 0.12s;
-    border: 1.5px solid transparent;
-}
-.confirmBtn:active { transform: scale(0.97); }
-
-.confirmCancel {
-    background: var(--surface-2);
-    border-color: var(--border);
-    color: var(--text-primary);
-}
-.confirmCancel:hover { background: var(--surface-3); }
-
-.confirmOk {
-    background: var(--red);
-    color: white;
-    border-color: var(--red);
-    box-shadow: 0 2px 8px rgba(239,69,69,0.3);
-}
-.confirmOk:hover { background: #d63030; box-shadow: 0 4px 12px rgba(239,69,69,0.4); }
-
-/* ════════════════════════════════════════════════════════════════
-   NEW APP MODAL
-════════════════════════════════════════════════════════════════ */
-.newAppPanel {
-    width: min(560px, calc(100vw - 32px));
-}
-
-.newAppRow {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    margin-bottom: 14px;
-}
-.newAppRow:last-child { margin-bottom: 0; }
-
-.newAppLabel {
-    font-size: 12.5px;
-    font-weight: 700;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-}
-
-.newAppRequired { color: var(--red); }
-
-.newAppInput {
-    padding: 9px 12px;
-    border: 1.5px solid var(--border);
-    border-radius: var(--r-sm);
-    font-size: 14px;
-    font-family: var(--font-body);
-    background: var(--surface-2);
-    color: var(--text-primary);
-    outline: none;
-    width: 100%;
-    transition: border-color 0.15s, box-shadow 0.15s;
-}
-.newAppInput:focus {
-    border-color: var(--acc);
-    box-shadow: 0 0 0 3px rgba(91,108,249,0.12);
-    background: var(--surface);
-}
-
-.newAppTextarea {
-    resize: vertical;
-    min-height: 72px;
-}
-
-.newAppImageRow {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
-.newAppImageRow .newAppInput { flex: 1; }
-
-.newAppImagePreview {
-    width: 52px;
-    height: 52px;
-    border: 1.5px solid var(--border);
-    border-radius: var(--r-md);
-    background: var(--surface-3);
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-}
-.newAppImagePreview img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-.newAppImagePlaceholder {
-    font-size: 20px;
-    color: var(--text-muted);
-    font-weight: bold;
-}
-
-.newAppCatGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 6px 12px;
-}
-
-.newAppFooter {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 10px;
-    padding: 16px 24px;
-    border-top: 1px solid var(--border);
-    flex-wrap: wrap;
-    background: var(--surface-2);
-    border-radius: 0 0 var(--r-xl) var(--r-xl);
-}
-
-.newAppError {
-    flex: 1;
-    font-size: 13px;
-    color: var(--red);
-    font-weight: 600;
-}
-
-.newAppSaveBtn {
-    background: var(--acc);
-    color: white;
-    border-color: var(--acc);
-    box-shadow: 0 2px 8px rgba(91,108,249,0.3);
-}
-.newAppSaveBtn:hover:not(:disabled) { background: var(--acc-hover); box-shadow: 0 4px 12px rgba(91,108,249,0.4); }
-.newAppSaveBtn:disabled { opacity: 0.5; cursor: default; }
 
 /* ════════════════════════════════════════════════════════════════
    EMPTY STATE
@@ -1274,11 +832,19 @@ body[data-density="compact"]     .appBox { width: 100px; height: 100px; border-r
 body[data-density="compact"]     .appBox img { width: 100px; height: 100px; }
 body[data-density="compact"]     .app-list { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
 body[data-density="compact"]     .appName { width: 100px; }
+body[data-density="compact"]     .popUpBox { left: 112px; }
+body[data-density="compact"]     .popUpBox.flipped { left: unset; right: 112px; }
+body[data-density="compact"]     .categoryOverlay { left: 112px; }
+body[data-density="compact"]     .categoryOverlay.flipped { left: unset; right: 112px; }
 
 body[data-density="spacious"]    .appBox { width: 190px; height: 190px; }
 body[data-density="spacious"]    .appBox img { width: 190px; height: 190px; }
 body[data-density="spacious"]    .app-list { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
 body[data-density="spacious"]    .appName { width: 190px; }
+body[data-density="spacious"]    .popUpBox { left: 202px; }
+body[data-density="spacious"]    .popUpBox.flipped { left: unset; right: 202px; }
+body[data-density="spacious"]    .categoryOverlay { left: 202px; }
+body[data-density="spacious"]    .categoryOverlay.flipped { left: unset; right: 202px; }
 
 /* ════════════════════════════════════════════════════════════════
    DARK THEME
@@ -1297,9 +863,10 @@ body[data-theme="dark"] {
     --shadow-lg:    0 8px 28px rgba(0,0,0,0.5), 0 4px 8px rgba(0,0,0,0.25);
     --shadow-xl:    0 20px 48px rgba(0,0,0,0.6), 0 8px 16px rgba(0,0,0,0.3);
     --sidebar-bg:   #0a0c18;
+    --sidebar-text: #b0b8d8;
     --sidebar-hover:#141729;
-    --sidebar-div:  #1e2235;
-    --sidebar-label:#3a4060;
+    --sidebar-div:  #2a3050;
+    --sidebar-label:#6870a0;
     --acc-light:    #1a1e3a;
     --green-light:  #0a2018;
     --yellow-light: #1e1800;
@@ -1318,14 +885,243 @@ body[data-theme="blue"] {
     --text-secondary: #3a6080;
     --border:       #a8cce8;
     --sidebar-bg:   #0e2a4a;
+    --sidebar-text: #b8d4f0;
+    --sidebar-acc:  #e8f4ff;
     --sidebar-hover:#173a62;
-    --sidebar-div:  #173a62;
-    --sidebar-label:#3a6090;
+    --sidebar-div:  #2a5080;
+    --sidebar-label:#7aaad0;
     --acc:          #1a6fc4;
     --acc-hover:    #1560b0;
     --acc-light:    #d0e8fa;
     --green-light:  #d0f0e0;
     --yellow-light: #fdf6d0;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   WIDGET SYSTEM
+════════════════════════════════════════════════════════════════ */
+
+/* ── Widget container ────────────────────────────────────────── */
+.widgetContainer {
+    width: 92%;
+    margin: 24px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.widgetContainer.layout-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+    align-items: start;
+}
+
+/* ── Individual widget ───────────────────────────────────────── */
+.widget {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-sm);
+    overflow: visible;
+    transition: box-shadow 0.15s, opacity 0.15s;
+}
+
+.widget:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.widgetDragging {
+    opacity: 0.45;
+    box-shadow: var(--shadow-xl) !important;
+}
+
+/* ── Widget header ───────────────────────────────────────────── */
+.widgetHeader {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 20px 10px;
+    border-bottom: 1px solid var(--border);
+}
+
+.widgetDragHandle {
+    font-size: 18px;
+    color: var(--text-muted);
+    cursor: grab;
+    user-select: none;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.widgetDragHandle:active { cursor: grabbing; }
+
+.widgetTitle {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+    flex: 1;
+    letter-spacing: -0.2px;
+}
+
+.widgetRemoveBtn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 16px;
+    width: 26px;
+    height: 26px;
+    border-radius: var(--r-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.12s, color 0.12s;
+    flex-shrink: 0;
+    padding: 0;
+}
+
+.widgetRemoveBtn:hover {
+    background: var(--red-light);
+    color: var(--red);
+}
+
+/* Wrap app-list inside a widget */
+.widget .app-list {
+    padding: 16px 16px 8px;
+}
+
+/* Health sub-widget grid needs breathing room */
+.widget .dashboardWidgets {
+    padding: 16px;
+    gap: 12px;
+}
+
+/* Health widget footer */
+.widget .dashboardChecked {
+    padding: 8px 20px 14px;
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+/* ── Add Widget area ─────────────────────────────────────────── */
+.addWidgetArea {
+    display: flex;
+    justify-content: center;
+    padding: 8px 0 16px;
+}
+
+.addWidgetBtnRow {
+    position: relative;
+}
+
+.addWidgetBtn {
+    height: 38px;
+    padding: 0 20px;
+    background: var(--surface);
+    border: 1.5px dashed var(--border);
+    border-radius: var(--r-md);
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font-body);
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.addWidgetBtn:hover {
+    border-color: var(--acc);
+    color: var(--acc);
+    background: var(--acc-light);
+}
+
+.addWidgetPanel {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-xl);
+    min-width: 200px;
+    overflow: hidden;
+    z-index: 100;
+}
+
+.addWidgetPanelTitle {
+    padding: 10px 14px 6px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+}
+
+.addWidgetItem {
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: background 0.12s;
+}
+
+.addWidgetItem:hover {
+    background: var(--acc-light);
+    color: var(--acc);
+}
+
+.addWidgetEmpty {
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 8px 0;
+}
+
+/* ── Search results wrapper ──────────────────────────────────── */
+.widgetSearchResults {
+    width: 92%;
+    margin: 16px auto 0;
+}
+
+.widgetSearchHeader {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    padding: 0 4px 10px;
+}
+
+/* ── Favorite button ─────────────────────────────────────────── */
+.favoriteBtn {
+    display: block;
+    margin: 2px auto 0;
+    background: none;
+    border: none;
+    font-size: 16px;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: var(--r-sm);
+    transition: color 0.15s, background 0.15s;
+    font-family: var(--font-body);
+    line-height: 1;
+}
+
+.favoriteBtn:hover {
+    color: var(--yellow);
+    background: var(--yellow-light);
+}
+
+.favoriteBtn.favorited {
+    color: var(--yellow);
+}
+
+/* ── Settings hint text ──────────────────────────────────────── */
+.settingsHint {
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 6px 0 2px;
+    line-height: 1.5;
 }
 
 /* ════════════════════════════════════════════════════════════════
@@ -1355,24 +1151,6 @@ body[data-theme="blue"] {
     to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-.panel-drop-enter-active { transition: opacity 0.15s ease, transform 0.15s ease; }
-.panel-drop-leave-active { transition: opacity 0.1s ease, transform 0.1s ease; }
-.panel-drop-enter-from   { opacity: 0; transform: translateY(-6px) scaleY(0.95); transform-origin: top; }
-.panel-drop-leave-to     { opacity: 0; transform: translateY(-4px) scaleY(0.97); transform-origin: top; }
-
-.bar-slide-enter-active { transition: opacity 0.18s ease, transform 0.18s ease, max-height 0.18s ease; }
-.bar-slide-leave-active { transition: opacity 0.12s ease, transform 0.12s ease, max-height 0.12s ease; }
-.bar-slide-enter-from   { opacity: 0; transform: translateY(-8px); max-height: 0; }
-.bar-slide-leave-to     { opacity: 0; transform: translateY(-4px); max-height: 0; }
-
-/* ── Search empty state ──────────────────────────────────────── */
-.searchEmpty {
-    grid-column: 1 / -1;
-    padding: 40px 0;
-    text-align: center;
-    color: var(--text-muted);
-    font-size: 14px;
-}
 
 /* ════════════════════════════════════════════════════════════════
    ANNOUNCEMENTS
@@ -1418,6 +1196,12 @@ body[data-theme="blue"] {
 /* Modal panel */
 .announcementsPanel {
     width: min(500px, calc(100vw - 32px));
+}
+
+.announcementsHeaderActions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
 }
 
 .markAllReadBtn {
@@ -1534,34 +1318,6 @@ body[data-theme="blue"] {
 /* ════════════════════════════════════════════════════════════════
    SYSTEM HEALTH DASHBOARD
 ════════════════════════════════════════════════════════════════ */
-.dashboardSection {
-    width: 92%;
-    margin: 8px auto 40px;
-}
-
-.dashboardHeader {
-    display: flex;
-    align-items: baseline;
-    gap: 14px;
-    margin-bottom: 16px;
-    padding-top: 24px;
-    border-top: 1px solid var(--border);
-}
-
-.dashboardTitle {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 800;
-    color: var(--text-primary);
-    letter-spacing: -0.3px;
-}
-
-.dashboardChecked {
-    font-size: 12px;
-    color: var(--text-muted);
-    font-family: var(--font-mono);
-}
-
 /* Widget grid — 2 cols on wide, stacks on narrow */
 .dashboardWidgets {
     display: grid;
@@ -1778,45 +1534,3 @@ body[data-theme="blue"] {
     margin-top: 1px;
 }
 
-/* ── Settings: dashboard widget toggles ───────────────────── */
-.settingsSectionSubtitle {
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--text-muted);
-    margin: 14px 0 8px;
-}
-
-.dashWidgetToggles {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.dashWidgetToggleItem {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    user-select: none;
-    padding: 6px 8px;
-    border-radius: var(--r-sm);
-    transition: background 0.12s;
-}
-.dashWidgetToggleItem:hover { background: var(--surface-2); }
-
-.dashWidgetToggleLabel {
-    font-size: 13.5px;
-    font-weight: 500;
-    color: var(--text-primary);
-}
-
-/* Adjust small toggle knob position */
-.settingsToggle[style*="width:34px"] .settingsToggleKnob[style*="width:12px"] {
-    top: 2px;
-    left: 2px;
-}
-.settingsToggle[style*="width:34px"].on .settingsToggleKnob[style*="width:12px"] {
-    left: 16px;
-}

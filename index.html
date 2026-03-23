@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://www.unpkg.com/vue@3.0.2/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <link rel="stylesheet" href="style.css">
     <title>JCRS-D</title>
@@ -96,348 +96,278 @@
                             <div class="shortcutRow"><kbd>/</kbd> Focus search</div>
                             <div class="shortcutRow"><kbd>Esc</kbd> Clear / close</div>
                             <div class="shortcutRow"><kbd>E</kbd> Toggle edit mode</div>
-                            <div class="shortcutRow"><kbd>B</kbd> Bulk select (in edit)</div>
                         </div>
                     </div>
                     <div class="editToggle" :class="{ active: editMode }" @click="toggleEditMode">
                         {{ editMode ? '✓ Done' : '✎ Edit' }}
                     </div>
-                    <div class="editToggle newAppBtn"
-                         v-if="editMode"
-                         @click="openNewAppModal"
-                         title="Create a new app">
-                        + New App
-                    </div>
-                    <div class="editToggle bulkSelectBtn"
-                         v-if="editMode"
-                         :class="{ active: bulkSelectMode }"
-                         @click="toggleBulkSelect"
-                         title="Select multiple apps to bulk-assign categories (B)">
-                        {{ bulkSelectMode ? '✕ Cancel' : '☑ Select' }}
-                    </div>
-                    <div class="filtersWrapper">
-                        <div class="infoBox" @mouseover="openCategories()">Filters</div>
-                        <transition name="panel-drop">
-                        <div class="filtersPanel" v-show="showCategories">
-
-                            <template v-if="!editMode">
-                                <div class="filterItem"
-                                     v-for="cat in categories"
-                                     :class="{ activeCategory: currentCategoryId === cat.id }"
-                                     @click="switchCategory(cat.id)">
-                                    {{ cat.label }}
-                                </div>
-                            </template>
-
-                            <template v-else>
-                                <div class="filterItem editableFilter" v-for="cat in categories" :key="cat.id">
-                                    <template v-if="renamingCategory === cat.id">
-                                        <input
-                                            :id="`rename-input-${cat.id}`"
-                                            v-model="renameValue"
-                                            class="renameInput"
-                                            @keyup.enter="commitRename(cat.id)"
-                                            @keyup.escape="renamingCategory = null"
-                                            @blur="onRenameBlur(cat.id, $event)"
-                                        />
-                                    </template>
-                                    <template v-else>
-                                        <span class="catLabel" @click="startRename(cat.id, cat.label)">{{ cat.label }}</span>
-                                        <button class="catDelete" v-if="cat.id !== 'All'" @click="confirmDeleteCategory(cat.id)">×</button>
-                                    </template>
-                                </div>
-                                <div class="filterItem addCategory" @click="createCategory">+ New</div>
-                            </template>
-
-                        </div>
-                        </transition>
-                    </div>
                 </div>
             </div>
 
-            <!-- Bulk select bar -->
-            <transition name="bar-slide">
-            <div class="bulkBar" v-if="bulkSelectMode">
-                <span class="bulkCount">
-                    {{ selectedAppIds.length }} app{{ selectedAppIds.length !== 1 ? 's' : '' }} selected
-                </span>
-                <button class="bulkBarBtn" @click="selectAll">Select all</button>
-                <button class="bulkBarBtn" @click="deselectAll" :disabled="selectedAppIds.length === 0">Deselect all</button>
-                <div class="bulkPanelWrapper">
-                    <button class="bulkBarBtn bulkBarBtnPrimary bulkPanelBtn"
-                            :disabled="selectedAppIds.length === 0"
-                            @click.stop="openBulkPanel">
-                        Assign categories ▾
-                    </button>
-                    <div class="bulkPanel" v-show="showBulkPanel" @click.stop>
-                        <div class="bulkPanelTitle">Assign / remove categories</div>
-                        <div class="bulkPanelHint">Click to toggle for all selected apps</div>
-                        <div class="bulkCatList">
-                            <div class="bulkCatItem"
-                                 v-for="cat in categories"
-                                 :key="cat.id"
-                                 :class="['bulkCatState-' + (bulkCategoryStates[cat.id] || 'none'), { disabled: cat.id === 'All' }]"
-                                 @click="bulkToggleCategory(cat.id)">
-                                <span class="bulkCatCheck">
-                                    <span v-if="bulkCategoryStates[cat.id] === 'all'">✓</span>
-                                    <span v-else-if="bulkCategoryStates[cat.id] === 'some'">–</span>
-                                    <span v-else>&nbsp;</span>
-                                </span>
-                                <span class="bulkCatLabel">{{ cat.label }}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            </transition>
 
-            <!-- App grid -->
+            <!-- ── Search results ─────────────────────────────────────────── -->
             <transition name="grid-fade" mode="out-in">
-            <div class="app-list" :key="currentCategoryId + (isSearching ? '__search' : '')">
-                <div class="emptyState" v-if="filteredApps.length === 0">
-                    <template v-if="isSearching">
+            <div v-if="isSearching" class="widgetSearchResults">
+                <div class="widgetSearchHeader" v-if="searchResults.length > 0">
+                    {{ searchResults.length }} result{{ searchResults.length !== 1 ? 's' : '' }} for "{{ searchQuery }}"
+                </div>
+                <div class="app-list">
+                    <div class="emptyState" v-if="searchResults.length === 0">
                         <div class="emptyStateIcon">&#128269;</div>
                         <div class="emptyStateTitle">No results for "{{ searchQuery }}"</div>
                         <div class="emptyStateHint">Try a different spelling, or search by description.</div>
                         <button class="emptyStateAction" @click="searchQuery = ''">Clear search</button>
-                    </template>
-                    <template v-else-if="editMode">
-                        <div class="emptyStateIcon">&#128194;</div>
-                        <div class="emptyStateTitle">This category is empty</div>
-                        <div class="emptyStateHint">Open the <strong>&#9881;</strong> menu on any app to add it here, or use <strong>&#9745; Select</strong> to bulk-assign apps.</div>
-                    </template>
-                    <template v-else>
-                        <div class="emptyStateIcon">&#128194;</div>
-                        <div class="emptyStateTitle">Nothing here yet</div>
-                        <div class="emptyStateHint">Switch to <strong>&#9998; Edit</strong> mode to add apps to this category.</div>
-                        <button class="emptyStateAction" @click="switchCategory('All')">Browse all apps</button>
-                    </template>
-                </div>
-                <div class="application"
-                     v-for="app in filteredApps"
-                     :key="app.id"
-                     @mouseenter="setPopup(app.id, true)"
-                     @mouseleave="setPopup(app.id, false)"
-                     :draggable="editMode && !bulkSelectMode ? 'true' : 'false'"
-                     @dragstart="editMode && !bulkSelectMode && onDragStart(app.id)"
-                     @dragover="editMode && !bulkSelectMode && onDragOver($event)"
-                     @drop="editMode && !bulkSelectMode && onDrop(app.id)"
-                     :class="{ dragging: dragSrcId === app.id, bulkSelected: isAppSelected(app.id), bulkSelectable: bulkSelectMode }">
-
-                    <div class="appBox" :data-id="app.id"
-                         @click="bulkSelectMode ? toggleAppSelection(app.id) : (!editMode && handleAppClick(app))">
-                        <img :src="app.image" :alt="app.name" width=150 height=150>
-                        <div class="editOverlay" v-if="editMode && !bulkSelectMode">
-                            <span class="dragHandle">⠿</span>
-                            <button class="deleteAppBtn" @click.stop="confirmDeleteApp(app.id)">🗑</button>
-                            <button class="manageBtn" @click.stop="toggleManageApp(app.id)">⚙</button>
+                    </div>
+                    <div class="application"
+                         v-for="app in searchResults"
+                         :key="app.id"
+                         @mouseenter="setPopup('search_' + app.id, true)"
+                         @mouseleave="setPopup('search_' + app.id, false)">
+                        <div class="appBox" :data-id="app.id" :data-popup-key="'search_' + app.id" @click="handleAppClick(app)">
+                            <img :src="app.image" :alt="app.name" width=150 height=150>
                         </div>
-                        <div class="bulkSelectOverlay" v-if="bulkSelectMode">
-                            <span class="bulkCheckbox" :class="{ checked: isAppSelected(app.id) }">
-                                {{ isAppSelected(app.id) ? '✓' : '' }}
-                            </span>
+                        <div class="appName">{{ app.name }}</div>
+                        <div class="popUpBox"
+                             v-show="showPopups['search_' + app.id]"
+                             :class="{ flipped: flippedPopups['search_' + app.id] }"
+                             @mouseenter="setPopup('search_' + app.id, true)"
+                             @mouseleave="setPopup('search_' + app.id, false)">
+                            <strong>{{ app.name }}</strong><br>
+                            {{ app.description }}<br>
+                            <em>{{ app.function }}</em>
+                            <a v-if="app.docsLink" :href="app.docsLink" target="_blank" class="popupDocsLink" @click.stop>
+                                📄 Documentation
+                            </a>
                         </div>
                     </div>
-                    <div class="appName">{{ app.name }}</div>
-
-                    <div class="categoryOverlay" v-if="editMode && managingApp === app.id"
-                         :class="{ flipped: flippedPopups[app.id], flippedUp: flippedUpOverlays[app.id] }"
-                         @click.stop>
-                        <div class="categoryOverlayTitle">Categories</div>
-                        <label class="categoryCheck"
-                               v-for="cat in categories"
-                               :key="cat.id"
-                               :class="{ disabled: cat.id === 'All' }">
-                            <input
-                                type="checkbox"
-                                :checked="appInCategory(app.id, cat.id)"
-                                :disabled="cat.id === 'All'"
-                                @change="toggleAppInCategory(app.id, cat.id)"
-                            />
-                            {{ cat.label }}
-                        </label>
-                    </div>
-
-                    <div class="popUpBox"
-                         v-show="showPopups[app.id]"
-                         :class="{ flipped: flippedPopups[app.id] }">
-                        <strong>{{ app.name }}</strong><br>
-                        {{ app.description }}<br>
-                        <em>{{ app.function }}</em>
-                    </div>
-
                 </div>
             </div>
             </transition>
 
-        <!-- ── System Health Dashboard ──────────────────────────────── -->
-        <div class="dashboardSection" v-if="settings.showDashboard">
-            <div class="dashboardHeader">
-                <h2 class="dashboardTitle">System Health</h2>
-                <span class="dashboardChecked">Last checked {{ health.systemStatus.lastChecked }}</span>
-            </div>
-            <div class="dashboardWidgets">
+            <!-- ── Widget container ───────────────────────────────────────── -->
+            <div v-if="!isSearching" class="widgetContainer" :class="'layout-' + settings.widgetLayout">
 
-                <!-- Overall Status -->
-                <div class="dashWidget dashWidgetStatus" v-if="settings.dashboardWidgets.systemStatus">
-                    <div class="dashWidgetLabel">Overall Status</div>
-                    <div class="dashStatusBadge" :class="'status-' + health.systemStatus.overall">
-                        <span class="dashStatusDot"></span>
-                        {{ health.systemStatus.overall.charAt(0).toUpperCase() + health.systemStatus.overall.slice(1) }}
-                    </div>
-                    <div class="dashStatusMeta">
-                        <span>Uptime <strong>{{ health.systemStatus.uptime }}</strong></span>
-                        <span>Since {{ health.systemStatus.since }}</span>
-                    </div>
-                </div>
+                <div class="widget"
+                     v-for="widget in visibleWidgets"
+                     :key="widget.id"
+                     :class="{ widgetDragging: widgetDragSrcId === widget.id }"
+                     draggable="true"
+                     @dragstart="onWidgetDragStart(widget.id)"
+                     @dragover="onDragOver($event)"
+                     @drop="onWidgetDrop(widget.id)">
 
-                <!-- CPU / Memory / Disk -->
-                <div class="dashWidget dashWidgetMetrics" v-if="settings.dashboardWidgets.cpuMemory">
-                    <div class="dashWidgetLabel">Resources</div>
-                    <div class="dashMetricRow">
-                        <span class="dashMetricName">CPU</span>
-                        <div class="dashBar"><div class="dashBarFill" :class="health.cpu.used > 80 ? 'danger' : health.cpu.used > 60 ? 'warn' : 'ok'" :style="{ width: health.cpu.used + '%' }"></div></div>
-                        <span class="dashMetricValue">{{ health.cpu.label }}</span>
+                    <div class="widgetHeader">
+                        <span class="widgetDragHandle" title="Drag to reorder">⠿</span>
+                        <h2 class="widgetTitle">{{ widgetTitle(widget) }}</h2>
+                        <button class="widgetRemoveBtn" @click="removeWidget(widget.id)" title="Remove widget">✕</button>
                     </div>
-                    <div class="dashMetricRow">
-                        <span class="dashMetricName">Memory</span>
-                        <div class="dashBar"><div class="dashBarFill" :class="health.memory.used > 80 ? 'danger' : health.memory.used > 60 ? 'warn' : 'ok'" :style="{ width: health.memory.used + '%' }"></div></div>
-                        <span class="dashMetricValue">{{ health.memory.label }}</span>
-                    </div>
-                    <div class="dashMetricRow">
-                        <span class="dashMetricName">Disk</span>
-                        <div class="dashBar"><div class="dashBarFill" :class="health.disk.used > 80 ? 'danger' : health.disk.used > 60 ? 'warn' : 'ok'" :style="{ width: health.disk.used + '%' }"></div></div>
-                        <span class="dashMetricValue">{{ health.disk.label }}</span>
-                    </div>
-                </div>
 
-                <!-- Services -->
-                <div class="dashWidget dashWidgetServices" v-if="settings.dashboardWidgets.services">
-                    <div class="dashWidgetLabel">Services
-                        <span class="dashServicesCount">
-                            <span class="dashServicesDot ok"></span>{{ health.services.filter(s => s.status === 'up').length }} up
-                        </span>
-                        <span class="dashServicesCount" v-if="health.services.some(s => s.status === 'degraded')">
-                            <span class="dashServicesDot warn"></span>{{ health.services.filter(s => s.status === 'degraded').length }} degraded
-                        </span>
-                        <span class="dashServicesCount" v-if="health.services.some(s => s.status === 'down')">
-                            <span class="dashServicesDot danger"></span>{{ health.services.filter(s => s.status === 'down').length }} down
-                        </span>
-                    </div>
-                    <div class="dashServiceList">
-                        <div class="dashServiceRow" v-for="svc in health.services" :key="svc.name">
-                            <span class="dashServiceDot" :class="svc.status"></span>
-                            <span class="dashServiceName">{{ svc.name }}</span>
-                            <span class="dashServiceLatency">{{ svc.latency }}</span>
-                        </div>
-                    </div>
-                </div>
+                    <!-- ── Category widget ──────────────────────────────── -->
+                    <template v-if="widget.type === 'category'">
+                        <div class="app-list">
+                            <div class="emptyState" v-if="categoryApps(widget.categoryId).length === 0">
+                                <div class="emptyStateIcon">&#128194;</div>
+                                <div class="emptyStateTitle" v-if="editMode">This category is empty</div>
+                                <div class="emptyStateTitle" v-else>Nothing here yet</div>
+                                <div class="emptyStateHint" v-if="editMode">Use <strong>&#9745; Select</strong> to bulk-assign apps here.</div>
+                            </div>
+                            <div class="application"
+                                 v-for="app in categoryApps(widget.categoryId)"
+                                 :key="app.id"
+                                 @mouseenter="setPopup(widget.id + '_' + app.id, true)"
+                                 @mouseleave="setPopup(widget.id + '_' + app.id, false)"
+                                 :draggable="editMode ? 'true' : 'false'"
+                                 @dragstart="editMode && onDragStart(app.id, widget.categoryId)"
+                                 @dragover="editMode && onDragOver($event)"
+                                 @drop="editMode && onDrop(app.id, widget.categoryId)"
+                                 :class="{ dragging: dragSrcId === app.id }">
 
-                <!-- Recent Alerts -->
-                <div class="dashWidget dashWidgetAlerts" v-if="settings.dashboardWidgets.recentAlerts">
-                    <div class="dashWidgetLabel">Recent Alerts</div>
-                    <div class="dashAlertList">
-                        <div class="dashAlertRow" v-for="alert in health.alerts" :key="alert.id" :class="'alert-' + alert.severity">
-                            <span class="dashAlertIcon">
-                                <span v-if="alert.severity === 'error'">✕</span>
-                                <span v-else-if="alert.severity === 'warning'">!</span>
-                                <span v-else>i</span>
-                            </span>
-                            <span class="dashAlertMessage">{{ alert.message }}</span>
-                            <span class="dashAlertTime">{{ alert.time }}</span>
-                        </div>
-                    </div>
-                </div>
+                                <div class="appBox" :data-id="app.id" :data-popup-key="widget.id + '_' + app.id"
+                                     @click="!editMode && handleAppClick(app)">
+                                    <img :src="app.image" :alt="app.name" width=150 height=150>
+                                    <div class="editOverlay" v-if="editMode">
+                                        <span class="dragHandle">⠿</span>
+                                        <button class="manageBtn" @click.stop="toggleManageApp(app.id)">⚙</button>
+                                    </div>
+                                </div>
+                                <div class="appName">{{ app.name }}</div>
+                                <button class="favoriteBtn"
+                                        :class="{ favorited: isAppFavorited(app.id) }"
+                                        @click.stop="toggleFavorite(app.id)"
+                                        :title="isAppFavorited(app.id) ? 'Remove from favorites' : 'Add to favorites'">
+                                    {{ isAppFavorited(app.id) ? '★' : '☆' }}
+                                </button>
 
-            </div>
-        </div>
+                                <div class="categoryOverlay" v-if="editMode && managingApp === app.id"
+                                     :class="{ flipped: flippedPopups[app.id], flippedUp: flippedUpOverlays[app.id] }"
+                                     @click.stop>
+                                    <div class="categoryOverlayTitle">Categories</div>
+                                    <label class="categoryCheck"
+                                           v-for="cat in categories"
+                                           :key="cat.id"
+                                           :class="{ disabled: cat.id === 'All' }">
+                                        <input
+                                            type="checkbox"
+                                            :checked="appInCategory(app.id, cat.id)"
+                                            :disabled="cat.id === 'All'"
+                                            @change="toggleAppInCategory(app.id, cat.id)"
+                                        />
+                                        {{ cat.label }}
+                                    </label>
+                                </div>
 
-        </div>
-        <!-- New App Modal -->
-        <transition name="modal-fade">
-        <div class="settingsOverlay" v-if="showNewAppModal" @click.self="closeNewAppModal">
-            <div class="settingsPanel newAppPanel">
-                <div class="settingsHeader">
-                    <h2>{{ editingAppId ? 'Edit App' : 'New App' }}</h2>
-                    <button class="settingsClose" @click="closeNewAppModal">&#10005;</button>
-                </div>
+                                <div class="popUpBox"
+                                     v-show="showPopups[widget.id + '_' + app.id]"
+                                     :class="{ flipped: flippedPopups[widget.id + '_' + app.id] }"
+                                     @mouseenter="setPopup(widget.id + '_' + app.id, true)"
+                                     @mouseleave="setPopup(widget.id + '_' + app.id, false)">
+                                    <strong>{{ app.name }}</strong><br>
+                                    {{ app.description }}<br>
+                                    <em>{{ app.function }}</em>
+                                    <a v-if="app.docsLink" :href="app.docsLink" target="_blank" class="popupDocsLink" @click.stop>
+                                        📄 Documentation
+                                    </a>
+                                </div>
 
-                <div class="settingsSection">
-                    <div class="settingsSectionTitle">Identity</div>
-                    <div class="newAppRow">
-                        <label class="newAppLabel">Name <span class="newAppRequired">*</span></label>
-                        <input class="newAppInput" v-model="newApp.name" placeholder="My Application" @input="autoSlugImage" />
-                    </div>
-                    <div class="newAppRow">
-                        <label class="newAppLabel">Link <span class="newAppRequired">*</span></label>
-                        <input class="newAppInput" v-model="newApp.link" placeholder="https://..." />
-                    </div>
-                    <div class="newAppRow">
-                        <label class="newAppLabel">Image URL</label>
-                        <div class="newAppImageRow">
-                            <input class="newAppInput" v-model="newApp.image" placeholder="images/my_app.png" />
-                            <div class="newAppImagePreview">
-                                <img v-if="newApp.image" :src="newApp.image" alt="preview"
-                                     @error="newApp.imageError=true" @load="newApp.imageError=false" />
-                                <span v-if="!newApp.image || newApp.imageError" class="newAppImagePlaceholder">?</span>
                             </div>
                         </div>
-                    </div>
-                </div>
+                    </template>
 
-                <div class="settingsSection">
-                    <div class="settingsSectionTitle">Details</div>
-                    <div class="newAppRow">
-                        <label class="newAppLabel">Description</label>
-                        <textarea class="newAppInput newAppTextarea" v-model="newApp.description" placeholder="What does this app do?"></textarea>
-                    </div>
-                    <div class="newAppRow">
-                        <label class="newAppLabel">Function / Tag</label>
-                        <input class="newAppInput" v-model="newApp.function" placeholder="e.g. Analytics" />
-                    </div>
-                </div>
+                    <!-- ── Favorites widget ────────────────────────────── -->
+                    <template v-if="widget.type === 'favorites'">
+                        <div class="app-list">
+                            <div class="emptyState" v-if="favoriteApps.length === 0">
+                                <div class="emptyStateIcon">⭐</div>
+                                <div class="emptyStateTitle">No favorites yet</div>
+                                <div class="emptyStateHint">Click the ☆ on any app to add it here.</div>
+                            </div>
+                            <div class="application"
+                                 v-for="app in favoriteApps"
+                                 :key="app.id"
+                                 @mouseenter="setPopup(widget.id + '_' + app.id, true)"
+                                 @mouseleave="setPopup(widget.id + '_' + app.id, false)">
+                                <div class="appBox" :data-id="app.id" :data-popup-key="widget.id + '_' + app.id"
+                                     @click="!editMode && handleAppClick(app)">
+                                    <img :src="app.image" :alt="app.name" width=150 height=150>
+                                </div>
+                                <div class="appName">{{ app.name }}</div>
+                                <button class="favoriteBtn favorited"
+                                        @click.stop="toggleFavorite(app.id)"
+                                        title="Remove from favorites">
+                                    ★
+                                </button>
+                                <div class="popUpBox"
+                                     v-show="showPopups[widget.id + '_' + app.id]"
+                                     :class="{ flipped: flippedPopups[widget.id + '_' + app.id] }"
+                                     @mouseenter="setPopup(widget.id + '_' + app.id, true)"
+                                     @mouseleave="setPopup(widget.id + '_' + app.id, false)">
+                                    <strong>{{ app.name }}</strong><br>
+                                    {{ app.description }}<br>
+                                    <em>{{ app.function }}</em>
+                                    <a v-if="app.docsLink" :href="app.docsLink" target="_blank" class="popupDocsLink" @click.stop>
+                                        📄 Documentation
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
 
-                <div class="settingsSection">
-                    <div class="settingsSectionTitle">Categories</div>
-                    <div class="newAppCatGrid">
-                        <label class="categoryCheck"
-                               v-for="cat in categories"
-                               :key="cat.id"
-                               :class="{ disabled: cat.id === 'All' }">
-                            <input type="checkbox"
-                                   :disabled="cat.id === 'All'"
-                                   v-model="newApp.categoryIds"
-                                   :value="cat.id" />
-                            {{ cat.label }}
-                        </label>
-                    </div>
-                </div>
+                    <!-- ── System Health widget ─────────────────────────── -->
+                    <template v-if="widget.type === 'health'">
+                        <div class="dashboardWidgets">
 
-                <div class="newAppFooter">
-                    <span class="newAppError" v-if="newApp.error">{{ newApp.error }}</span>
-                    <button class="confirmBtn confirmCancel" @click="closeNewAppModal">Cancel</button>
-                    <button class="confirmBtn newAppSaveBtn" @click="saveNewApp" :disabled="newApp.saving">
-                        {{ newApp.saving ? 'Saving…' : (editingAppId ? 'Save changes' : 'Create app') }}
+                            <div class="dashWidget dashWidgetStatus">
+                                <div class="dashWidgetLabel">Overall Status</div>
+                                <div class="dashStatusBadge" :class="'status-' + health.systemStatus.overall">
+                                    <span class="dashStatusDot"></span>
+                                    {{ health.systemStatus.overall.charAt(0).toUpperCase() + health.systemStatus.overall.slice(1) }}
+                                </div>
+                                <div class="dashStatusMeta">
+                                    <span>Uptime <strong>{{ health.systemStatus.uptime }}</strong></span>
+                                    <span>Since {{ health.systemStatus.since }}</span>
+                                </div>
+                            </div>
+
+                            <div class="dashWidget dashWidgetMetrics">
+                                <div class="dashWidgetLabel">Resources</div>
+                                <div class="dashMetricRow">
+                                    <span class="dashMetricName">CPU</span>
+                                    <div class="dashBar"><div class="dashBarFill" :class="health.cpu.used > 80 ? 'danger' : health.cpu.used > 60 ? 'warn' : 'ok'" :style="{ width: health.cpu.used + '%' }"></div></div>
+                                    <span class="dashMetricValue">{{ health.cpu.label }}</span>
+                                </div>
+                                <div class="dashMetricRow">
+                                    <span class="dashMetricName">Memory</span>
+                                    <div class="dashBar"><div class="dashBarFill" :class="health.memory.used > 80 ? 'danger' : health.memory.used > 60 ? 'warn' : 'ok'" :style="{ width: health.memory.used + '%' }"></div></div>
+                                    <span class="dashMetricValue">{{ health.memory.label }}</span>
+                                </div>
+                                <div class="dashMetricRow">
+                                    <span class="dashMetricName">Disk</span>
+                                    <div class="dashBar"><div class="dashBarFill" :class="health.disk.used > 80 ? 'danger' : health.disk.used > 60 ? 'warn' : 'ok'" :style="{ width: health.disk.used + '%' }"></div></div>
+                                    <span class="dashMetricValue">{{ health.disk.label }}</span>
+                                </div>
+                            </div>
+
+                            <div class="dashWidget dashWidgetServices">
+                                <div class="dashWidgetLabel">Services
+                                    <span class="dashServicesCount">
+                                        <span class="dashServicesDot ok"></span>{{ health.services.filter(s => s.status === 'up').length }} up
+                                    </span>
+                                    <span class="dashServicesCount" v-if="health.services.some(s => s.status === 'degraded')">
+                                        <span class="dashServicesDot warn"></span>{{ health.services.filter(s => s.status === 'degraded').length }} degraded
+                                    </span>
+                                    <span class="dashServicesCount" v-if="health.services.some(s => s.status === 'down')">
+                                        <span class="dashServicesDot danger"></span>{{ health.services.filter(s => s.status === 'down').length }} down
+                                    </span>
+                                </div>
+                                <div class="dashServiceList">
+                                    <div class="dashServiceRow" v-for="svc in health.services" :key="svc.name">
+                                        <span class="dashServiceDot" :class="svc.status"></span>
+                                        <span class="dashServiceName">{{ svc.name }}</span>
+                                        <span class="dashServiceLatency">{{ svc.latency }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="dashWidget dashWidgetAlerts">
+                                <div class="dashWidgetLabel">Recent Alerts</div>
+                                <div class="dashAlertList">
+                                    <div class="dashAlertRow" v-for="alert in health.alerts" :key="alert.id" :class="'alert-' + alert.severity">
+                                        <span class="dashAlertIcon">
+                                            <span v-if="alert.severity === 'error'">✕</span>
+                                            <span v-else-if="alert.severity === 'warning'">!</span>
+                                            <span v-else>i</span>
+                                        </span>
+                                        <span class="dashAlertMessage">{{ alert.message }}</span>
+                                        <span class="dashAlertTime">{{ alert.time }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="dashboardChecked">Last checked {{ health.systemStatus.lastChecked }}</div>
+                    </template>
+
+                </div><!-- end .widget -->
+
+                <!-- ── Add Widget ─────────────────────────────────────────── -->
+                <div class="addWidgetArea" v-if="hiddenWidgets.length > 0">
+                    <button class="addWidgetBtn" @click.stop="showAddWidgetPanel = !showAddWidgetPanel">
+                        + Add Widget
                     </button>
+                    <div class="addWidgetPanel" v-show="showAddWidgetPanel" @click.stop>
+                        <div class="addWidgetPanelTitle">Hidden widgets</div>
+                        <div class="addWidgetItem"
+                             v-for="w in hiddenWidgets"
+                             :key="w.id"
+                             @click="restoreWidget(w.id); showAddWidgetPanel = false">
+                            {{ widgetTitle(w) }}
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-        </transition>
 
-        <!-- Confirmation Dialog -->
-        <transition name="modal-fade">
-        <div class="confirmOverlay" v-if="confirm.visible" @click.self="cancelConfirm">
-            <div class="confirmPanel">
-                <div class="confirmIcon">{{ confirm.icon }}</div>
-                <div class="confirmTitle">{{ confirm.title }}</div>
-                <div class="confirmMessage">{{ confirm.message }}</div>
-                <div class="confirmActions">
-                    <button class="confirmBtn confirmCancel" @click="cancelConfirm">Cancel</button>
-                    <button class="confirmBtn confirmOk" @click="okConfirm">{{ confirm.okLabel || 'Delete' }}</button>
-                </div>
-            </div>
-        </div>
-        </transition>
+            </div><!-- end .widgetContainer -->
+
+        </div><!-- end .mainContent -->
 
         <!-- Announcements Modal -->
         <transition name="modal-fade">
@@ -445,7 +375,7 @@
             <div class="settingsPanel announcementsPanel">
                 <div class="settingsHeader">
                     <h2>📣 Announcements</h2>
-                    <div style="display:flex;gap:8px;align-items:center">
+                    <div class="announcementsHeaderActions">
                         <button class="markAllReadBtn" v-if="unreadCount > 0" @click="markAllRead">Mark all read</button>
                         <button class="settingsClose" @click="closeAnnouncements">✕</button>
                     </div>
@@ -514,18 +444,22 @@
                     </div>
                 </div>
 
-                <!-- Default Category -->
+                <!-- Layout -->
                 <div class="settingsSection">
-                    <div class="settingsSectionTitle">Navigation</div>
+                    <div class="settingsSectionTitle">Layout</div>
                     <div class="settingsRow">
-                        <label class="settingsLabel">Default Category</label>
-                        <select class="settingsSelect"
-                                v-model="settings.defaultCategory"
-                                @change="saveSettings()">
-                            <option v-for="cat in categories" :key="cat.id" :value="cat.id">
-                                {{ cat.label }}
-                            </option>
-                        </select>
+                        <label class="settingsLabel">Widget Layout</label>
+                        <div class="settingsOptions">
+                            <button class="settingsOption"
+                                    :class="{ active: settings.widgetLayout === 'stack' }"
+                                    @click="settings.widgetLayout = 'stack'; saveSettings()">☰ Stack</button>
+                            <button class="settingsOption"
+                                    :class="{ active: settings.widgetLayout === 'grid' }"
+                                    @click="settings.widgetLayout = 'grid'; saveSettings()">▦ Grid</button>
+                        </div>
+                    </div>
+                    <div class="settingsHint">
+                        In edit mode, drag widget headers to reorder. Use ✕ to hide a widget, then "+ Add Widget" to restore it.
                     </div>
                 </div>
 
@@ -548,39 +482,6 @@
                             <div class="settingsToggleKnob"></div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Dashboard -->
-                <div class="settingsSection">
-                    <div class="settingsSectionTitle">Dashboard</div>
-                    <div class="settingsRow">
-                        <label class="settingsLabel">Show System Health Dashboard</label>
-                        <div class="settingsToggle"
-                             :class="{ on: settings.showDashboard }"
-                             @click="settings.showDashboard = !settings.showDashboard; saveSettings()">
-                            <div class="settingsToggleKnob"></div>
-                        </div>
-                    </div>
-                    <template v-if="settings.showDashboard">
-                        <div class="settingsSectionSubtitle">Visible widgets</div>
-                        <div class="dashWidgetToggles">
-                            <label class="dashWidgetToggleItem"
-                                   v-for="(enabled, key) in settings.dashboardWidgets"
-                                   :key="key"
-                                   @click="settings.dashboardWidgets[key] = !settings.dashboardWidgets[key]; saveSettings()">
-                                <div class="settingsToggle" style="width:34px;height:20px;border-radius:10px;"
-                                     :class="{ on: settings.dashboardWidgets[key] }">
-                                    <div class="settingsToggleKnob" style="width:12px;height:12px;"></div>
-                                </div>
-                                <span class="dashWidgetToggleLabel">{{
-                                    key === 'systemStatus' ? 'Overall Status' :
-                                    key === 'cpuMemory'    ? 'CPU / Memory / Disk' :
-                                    key === 'services'     ? 'Services' :
-                                    key === 'recentAlerts' ? 'Recent Alerts' : key
-                                }}</span>
-                            </label>
-                        </div>
-                    </template>
                 </div>
 
             </div>

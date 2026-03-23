@@ -351,16 +351,18 @@
 
                 <!-- ── Add Widget ─────────────────────────────────────────── -->
                 <div class="addWidgetArea" v-if="hiddenWidgets.length > 0">
-                    <button class="addWidgetBtn" @click.stop="showAddWidgetPanel = !showAddWidgetPanel">
-                        + Add Widget
-                    </button>
-                    <div class="addWidgetPanel" v-show="showAddWidgetPanel" @click.stop>
-                        <div class="addWidgetPanelTitle">Hidden widgets</div>
-                        <div class="addWidgetItem"
-                             v-for="w in hiddenWidgets"
-                             :key="w.id"
-                             @click="restoreWidget(w.id); showAddWidgetPanel = false">
-                            {{ widgetTitle(w) }}
+                    <div class="addWidgetBtnRow">
+                        <button class="addWidgetBtn" @click.stop="showAddWidgetPanel = !showAddWidgetPanel">
+                            + Add Widget
+                        </button>
+                        <div class="addWidgetPanel" v-show="showAddWidgetPanel" @click.stop>
+                            <div class="addWidgetPanelTitle">Hidden widgets</div>
+                            <div class="addWidgetItem"
+                                 v-for="w in hiddenWidgets"
+                                 :key="w.id"
+                                 @click="restoreWidget(w.id); showAddWidgetPanel = false">
+                                {{ widgetTitle(w) }}
+                            </div>
                         </div>
                     </div>
                 </div>

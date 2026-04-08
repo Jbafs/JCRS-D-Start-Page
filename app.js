@@ -264,20 +264,7 @@ const app = Vue.createApp({
         const json = await res.json()
         const hasCategories = json.categories && Object.keys(json.categories).length > 0
 
-        if (hasCategories) {
-          this.categories = {}
-          for (const [key, cat] of Object.entries(json.categories)) {
-            this.categories[key] = {
-              id: cat.id,
-              label: cat.label,
-              list: cat.appIds
-                .map(id => this.applications.find(a => a.id === id))
-                .filter(Boolean)
-            }
-          }
-        } else {
-          this.bootstrapCategories()
-        }
+        this.bootstrapCategories()
 
         // Load favorites
         this.favoriteIds = json.favoriteIds ?? []
@@ -301,38 +288,32 @@ const app = Vue.createApp({
     },
 
     bootstrapCategories() {
-      this.categories = {
-        All: { id: "All", label: "All", list: [...this.applications] }
-      }
-      this.applications.forEach(app => {
-        const cat = app.function
-        if (!cat) return
-        if (!this.categories[cat]) {
-          this.categories[cat] = { id: cat, label: cat, list: [] }
-        }
-        this.categories[cat].list.push(app)
-      })
-    },
+      // Sort all apps by their function/category so same-category apps are adjacent
+      const sorted = [...this.applications].sort((a, b) => {
+      const fa = (a.function ?? '').toLowerCase()
+      const fb = (b.function ?? '').toLowerCase()
+      return fa < fb ? -1 : fa > fb ? 1 : 0
+  })
+
+  this.categories = {
+    All: { id: "All", label: "All Apps", list: sorted }
+  }
+},
 
     bootstrapWidgets() {
-      const widgets = [{ id: 'w_favorites', type: 'favorites', visible: true }]
-      for (const [key] of Object.entries(this.categories)) {
-        if (key === 'All') continue
-        widgets.push({ id: `w_cat_${key}`, type: 'category', categoryId: key, visible: true })
-      }
-      widgets.push({ id: 'w_health', type: 'health', visible: true })
-      this.widgets = widgets
-    },
+      this.widgets = [
+      { id: 'w_favorites', type: 'favorites', visible: true },
+      { id: 'w_cat_All',   type: 'category',  categoryId: 'All', visible: true },
+      { id: 'w_health',    type: 'health',    visible: true },
+    ]
+  },
 
     syncWidgetsWithCategories() {
-      // Ensure every non-All category has a corresponding widget entry
-      for (const [key] of Object.entries(this.categories)) {
-        if (key === 'All') continue
-        const exists = this.widgets.find(w => w.type === 'category' && w.categoryId === key)
-        if (!exists) {
-          this.widgets.push({ id: `w_cat_${key}`, type: 'category', categoryId: key, visible: true })
-        }
-      }
+    // Only ensure the All widget exists — we no longer create per-category widgets
+    const hasAll = this.widgets.find(w => w.type === 'category' && w.categoryId === 'All')
+    if (!hasAll) {
+      this.widgets.splice(1, 0, { id: 'w_cat_All', type: 'category', categoryId: 'All', visible: true })
+    }
     },
 
     async saveData() {

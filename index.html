@@ -15,9 +15,9 @@
 
         <!-- ── Sidebar ───────────────────────────────────────────────────── -->
         <div class="sidebar" @mouseenter="sidebarExpanded=true" @mouseleave="sidebarExpanded=false"
-             :class="{ expanded: sidebarExpanded }">
+            :class="{ expanded: sidebarExpanded }">
 
-             <!-- Announcements button -->
+            <!-- Announcements button -->
             <div class="sidebarItem sidebarAnnouncementsBtn" @click="openAnnouncements" title="Announcements">
                 <span class="sidebarAnnouncementsIcon">
                     📣
@@ -33,8 +33,8 @@
             <div class="sidebarSection" v-if="settings.showRecent">
                 <div class="sidebarLabel">Recent</div>
                 <div class="sidebarEmpty" v-if="recentApps.length === 0">—</div>
-                <div class="sidebarItem" v-for="app in recentApps" :key="'r'+app.id"
-                     @click="handleAppClick(app)" :title="app.name">
+                <div class="sidebarItem" v-for="app in recentApps" :key="'r'+app.id" @click="handleAppClick(app)"
+                    :title="app.name">
                     <img :src="app.image" :alt="app.name" class="sidebarImg">
                     <span class="sidebarItemLabel">
                         <span class="sidebarItemName">{{ app.name }}</span>
@@ -48,8 +48,8 @@
             <div class="sidebarSection" v-if="settings.showMostUsed">
                 <div class="sidebarLabel">Most Used</div>
                 <div class="sidebarEmpty" v-if="mostUsedApps.length === 0">—</div>
-                <div class="sidebarItem" v-for="app in mostUsedApps" :key="'m'+app.id"
-                     @click="handleAppClick(app)" :title="app.name">
+                <div class="sidebarItem" v-for="app in mostUsedApps" :key="'m'+app.id" @click="handleAppClick(app)"
+                    :title="app.name">
                     <img :src="app.image" :alt="app.name" class="sidebarImg">
                     <span class="sidebarItemLabel">
                         <span class="sidebarItemName">{{ app.name }}</span>
@@ -77,15 +77,8 @@
             <div class="header">
                 <h1>Apps</h1>
                 <div class="searchWrapper">
-                    <input
-                        id="searchInput"
-                        class="searchInput"
-                        type="text"
-                        placeholder="Search apps…"
-                        v-model="searchQuery"
-                        @keyup.escape="searchQuery = ''"
-                        autocomplete="off"
-                    />
+                    <input id="searchInput" class="searchInput" type="text" placeholder="Search apps…"
+                        v-model="searchQuery" @keyup.escape="searchQuery = ''" autocomplete="off" />
                     <span class="searchShortcut" v-if="!searchQuery">/</span>
                     <button class="searchClear" v-if="searchQuery" @click="searchQuery = ''">✕</button>
                 </div>
@@ -107,247 +100,251 @@
 
             <!-- ── Search results ─────────────────────────────────────────── -->
             <transition name="grid-fade" mode="out-in">
-            <div v-if="isSearching" class="widgetSearchResults">
-                <div class="widgetSearchHeader" v-if="searchResults.length > 0">
-                    {{ searchResults.length }} result{{ searchResults.length !== 1 ? 's' : '' }} for "{{ searchQuery }}"
-                </div>
-                <div class="app-list">
-                    <div class="emptyState" v-if="searchResults.length === 0">
-                        <div class="emptyStateIcon">&#128269;</div>
-                        <div class="emptyStateTitle">No results for "{{ searchQuery }}"</div>
-                        <div class="emptyStateHint">Try a different spelling, or search by description.</div>
-                        <button class="emptyStateAction" @click="searchQuery = ''">Clear search</button>
+                <div v-if="isSearching" class="widgetSearchResults">
+                    <div class="widgetSearchHeader" v-if="searchResults.length > 0">
+                        {{ searchResults.length }} result{{ searchResults.length !== 1 ? 's' : '' }} for "{{ searchQuery
+                        }}"
                     </div>
-                    <div class="application"
-                         v-for="app in searchResults"
-                         :key="app.id"
-                         @mouseenter="setPopup('search_' + app.id, true)"
-                         @mouseleave="setPopup('search_' + app.id, false)">
-                        <div class="appBox" :data-id="app.id" :data-popup-key="'search_' + app.id" @click="handleAppClick(app)">
-                            <img :src="app.image" :alt="app.name" width=150 height=150>
+                    <div class="app-list">
+                        <div class="emptyState" v-if="searchResults.length === 0">
+                            <div class="emptyStateIcon">&#128269;</div>
+                            <div class="emptyStateTitle">No results for "{{ searchQuery }}"</div>
+                            <div class="emptyStateHint">Try a different spelling, or search by description.</div>
+                            <button class="emptyStateAction" @click="searchQuery = ''">Clear search</button>
                         </div>
-                        <div class="appName">{{ app.name }}</div>
-                        <div class="popUpBox"
-                             v-show="showPopups['search_' + app.id]"
-                             :class="{ flipped: flippedPopups['search_' + app.id] }"
-                             @mouseenter="setPopup('search_' + app.id, true)"
-                             @mouseleave="setPopup('search_' + app.id, false)">
-                            <strong>{{ app.name }}</strong><br>
-                            {{ app.description }}<br>
-                            <em>{{ app.function }}</em>
-                            <a v-if="app.docsLink" :href="app.docsLink" target="_blank" class="popupDocsLink" @click.stop>
-                                📄 Documentation
-                            </a>
+                        <div class="application" v-for="app in searchResults" :key="app.id"
+                            @mouseenter="setPopup('search_' + app.id, true)"
+                            @mouseleave="setPopup('search_' + app.id, false)">
+                            <div class="appBox" :data-id="app.id" :data-popup-key="'search_' + app.id"
+                                @click="handleAppClick(app)">
+                                <img :src="app.image" :alt="app.name" width=150 height=150>
+                            </div>
+                            <div class="appName">{{ app.name }}</div>
+                            <div class="popUpBox" v-show="showPopups['search_' + app.id]"
+                                :class="{ flipped: flippedPopups['search_' + app.id] }"
+                                @mouseenter="setPopup('search_' + app.id, true)"
+                                @mouseleave="setPopup('search_' + app.id, false)">
+                                <strong>{{ app.name }}</strong><br>
+                                {{ app.description }}<br>
+                                <em>{{ app.function }}</em>
+                                <a v-if="app.docsLink" :href="app.docsLink" target="_blank" class="popupDocsLink"
+                                    @click.stop>
+                                    📄 Documentation
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
             </transition>
 
             <!-- ── Widget container ───────────────────────────────────────── -->
             <div v-if="!isSearching" class="widgetContainer" :class="'layout-' + settings.widgetLayout">
 
-                <div class="widget"
-                     v-for="widget in visibleWidgets"
-                     :key="widget.id"
-                     :class="{ widgetDragging: widgetDragSrcId === widget.id }"
-                     draggable="true"
-                     @dragstart="onWidgetDragStart(widget.id)"
-                     @dragover="onDragOver($event)"
-                     @drop="onWidgetDrop(widget.id)">
+                <template v-for="widget in visibleWidgets" :key="widget.id">
 
-                    <div class="widgetHeader">
-                        <span class="widgetDragHandle" title="Drag to reorder">⠿</span>
-                        <h2 class="widgetTitle">{{ widgetTitle(widget) }}</h2>
-                        <button class="widgetRemoveBtn" @click="removeWidget(widget.id)" title="Remove widget">✕</button>
-                    </div>
+                    <!-- Only render the widget card if it has content -->
+                    <div class="widget"
+                        v-if="widget.type === 'health' || widget.type === 'favorites' || (widget.type === 'category' && categoryApps(widget.categoryId).length > 0)"
+                        :class="{ widgetDragging: widgetDragSrcId === widget.id }" draggable="true"
+                        @dragstart="onWidgetDragStart(widget.id)" @dragover="onDragOver($event)"
+                        @drop="onWidgetDrop(widget.id)">
 
-                    <!-- ── Category widget ──────────────────────────────── -->
-                    <template v-if="widget.type === 'category'">
-                        <div class="app-list">
-                            <div class="emptyState" v-if="categoryApps(widget.categoryId).length === 0">
-                                <div class="emptyStateIcon">&#128194;</div>
-                                <div class="emptyStateTitle" v-if="editMode">This category is empty</div>
-                                <div class="emptyStateTitle" v-else>Nothing here yet</div>
-                                <div class="emptyStateHint" v-if="editMode">Use <strong>&#9745; Select</strong> to bulk-assign apps here.</div>
-                            </div>
-                            <div class="application"
-                                 v-for="app in categoryApps(widget.categoryId)"
-                                 :key="app.id"
-                                 @mouseenter="setPopup(widget.id + '_' + app.id, true)"
-                                 @mouseleave="setPopup(widget.id + '_' + app.id, false)"
-                                 :draggable="editMode ? 'true' : 'false'"
-                                 @dragstart="editMode && onDragStart(app.id, widget.categoryId)"
-                                 @dragover="editMode && onDragOver($event)"
-                                 @drop="editMode && onDrop(app.id, widget.categoryId)"
-                                 :class="{ dragging: dragSrcId === app.id }">
+                        <div class="widgetHeader">
+                            <span class="widgetDragHandle" title="Drag to reorder">⠿</span>
+                            <h2 class="widgetTitle">{{ widgetTitle(widget) }}</h2>
+                            <button class="widgetRemoveBtn" @click="removeWidget(widget.id)"
+                                title="Remove widget">✕</button>
+                        </div>
 
-                                <div class="appBox" :data-id="app.id" :data-popup-key="widget.id + '_' + app.id"
-                                     @click="!editMode && handleAppClick(app)">
-                                    <img :src="app.image" :alt="app.name" width=150 height=150>
-                                    <div class="editOverlay" v-if="editMode">
-                                        <span class="dragHandle">⠿</span>
-                                        <button class="manageBtn" @click.stop="toggleManageApp(app.id)">⚙</button>
+                        <!-- ── Category widget ──────────────────────────────── -->
+                        <template v-if="widget.type === 'category'">
+                            <div class="app-list">
+                                <div class="application" v-for="app in categoryApps(widget.categoryId)" :key="app.id"
+                                    @mouseenter="setPopup(widget.id + '_' + app.id, true)"
+                                    @mouseleave="setPopup(widget.id + '_' + app.id, false)"
+                                    :draggable="editMode ? 'true' : 'false'"
+                                    @dragstart="editMode && onDragStart(app.id, widget.categoryId)"
+                                    @dragover="editMode && onDragOver($event)"
+                                    @drop="editMode && onDrop(app.id, widget.categoryId)"
+                                    :class="{ dragging: dragSrcId === app.id }">
+
+                                    <div class="appBox" :data-id="app.id" :data-popup-key="widget.id + '_' + app.id"
+                                        @click="!editMode && handleAppClick(app)">
+                                        <img :src="app.image" :alt="app.name" width=150 height=150>
+                                        <div class="editOverlay" v-if="editMode">
+                                            <span class="dragHandle">⠿</span>
+                                            <button class="manageBtn" @click.stop="toggleManageApp(app.id)">⚙</button>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="appName">{{ app.name }}</div>
-                                <button class="favoriteBtn"
-                                        :class="{ favorited: isAppFavorited(app.id) }"
+                                    <div class="appName">{{ app.name }}</div>
+                                    <button class="favoriteBtn" :class="{ favorited: isAppFavorited(app.id) }"
                                         @click.stop="toggleFavorite(app.id)"
                                         :title="isAppFavorited(app.id) ? 'Remove from favorites' : 'Add to favorites'">
-                                    {{ isAppFavorited(app.id) ? '★' : '☆' }}
-                                </button>
+                                        {{ isAppFavorited(app.id) ? '★' : '☆' }}
+                                    </button>
 
-                                <div class="categoryOverlay" v-if="editMode && managingApp === app.id"
-                                     :class="{ flipped: flippedPopups[app.id], flippedUp: flippedUpOverlays[app.id] }"
-                                     @click.stop>
-                                    <div class="categoryOverlayTitle">Categories</div>
-                                    <label class="categoryCheck"
-                                           v-for="cat in categories"
-                                           :key="cat.id"
-                                           :class="{ disabled: cat.id === 'All' }">
-                                        <input
-                                            type="checkbox"
-                                            :checked="appInCategory(app.id, cat.id)"
-                                            :disabled="cat.id === 'All'"
-                                            @change="toggleAppInCategory(app.id, cat.id)"
-                                        />
-                                        {{ cat.label }}
-                                    </label>
+                                    <div class="categoryOverlay" v-if="editMode && managingApp === app.id"
+                                        :class="{ flipped: flippedPopups[app.id], flippedUp: flippedUpOverlays[app.id] }"
+                                        @click.stop>
+                                        <div class="categoryOverlayTitle">Categories</div>
+                                        <label class="categoryCheck" v-for="cat in categories" :key="cat.id"
+                                            :class="{ disabled: cat.id === 'All' }">
+                                            <input type="checkbox" :checked="appInCategory(app.id, cat.id)"
+                                                :disabled="cat.id === 'All'"
+                                                @change="toggleAppInCategory(app.id, cat.id)" />
+                                            {{ cat.label }}
+                                        </label>
+                                    </div>
+
+                                    <div class="popUpBox" v-show="showPopups[widget.id + '_' + app.id]"
+                                        :class="{ flipped: flippedPopups[widget.id + '_' + app.id] }"
+                                        @mouseenter="setPopup(widget.id + '_' + app.id, true)"
+                                        @mouseleave="setPopup(widget.id + '_' + app.id, false)">
+                                        <strong>{{ app.name }}</strong><br>
+                                        {{ app.description }}<br>
+                                        <em>{{ app.function }}</em>
+                                        <a v-if="app.docsLink" :href="app.docsLink" target="_blank"
+                                            class="popupDocsLink" @click.stop>
+                                            📄 Documentation
+                                        </a>
+                                    </div>
+
                                 </div>
-
-                                <div class="popUpBox"
-                                     v-show="showPopups[widget.id + '_' + app.id]"
-                                     :class="{ flipped: flippedPopups[widget.id + '_' + app.id] }"
-                                     @mouseenter="setPopup(widget.id + '_' + app.id, true)"
-                                     @mouseleave="setPopup(widget.id + '_' + app.id, false)">
-                                    <strong>{{ app.name }}</strong><br>
-                                    {{ app.description }}<br>
-                                    <em>{{ app.function }}</em>
-                                    <a v-if="app.docsLink" :href="app.docsLink" target="_blank" class="popupDocsLink" @click.stop>
-                                        📄 Documentation
-                                    </a>
-                                </div>
-
                             </div>
-                        </div>
-                    </template>
+                        </template>
 
-                    <!-- ── Favorites widget ────────────────────────────── -->
-                    <template v-if="widget.type === 'favorites'">
-                        <div class="app-list">
-                            <div class="emptyState" v-if="favoriteApps.length === 0">
-                                <div class="emptyStateIcon">⭐</div>
-                                <div class="emptyStateTitle">No favorites yet</div>
-                                <div class="emptyStateHint">Click the ☆ on any app to add it here.</div>
-                            </div>
-                            <div class="application"
-                                 v-for="app in favoriteApps"
-                                 :key="app.id"
-                                 @mouseenter="setPopup(widget.id + '_' + app.id, true)"
-                                 @mouseleave="setPopup(widget.id + '_' + app.id, false)">
-                                <div class="appBox" :data-id="app.id" :data-popup-key="widget.id + '_' + app.id"
-                                     @click="!editMode && handleAppClick(app)">
-                                    <img :src="app.image" :alt="app.name" width=150 height=150>
+                        <!-- ── Favorites widget ────────────────────────────── -->
+                        <template v-if="widget.type === 'favorites'">
+                            <div class="app-list">
+                                <div class="emptyState" v-if="favoriteApps.length === 0">
+                                    <div class="emptyStateIcon">⭐</div>
+                                    <div class="emptyStateTitle">No favorites yet</div>
+                                    <div class="emptyStateHint">Click the ☆ on any app to add it here.</div>
                                 </div>
-                                <div class="appName">{{ app.name }}</div>
-                                <button class="favoriteBtn favorited"
-                                        @click.stop="toggleFavorite(app.id)"
+                                <div class="application" v-for="app in favoriteApps" :key="app.id"
+                                    @mouseenter="setPopup(widget.id + '_' + app.id, true)"
+                                    @mouseleave="setPopup(widget.id + '_' + app.id, false)">
+                                    <div class="appBox" :data-id="app.id" :data-popup-key="widget.id + '_' + app.id"
+                                        @click="!editMode && handleAppClick(app)">
+                                        <img :src="app.image" :alt="app.name" width=150 height=150>
+                                    </div>
+                                    <div class="appName">{{ app.name }}</div>
+                                    <button class="favoriteBtn favorited" @click.stop="toggleFavorite(app.id)"
                                         title="Remove from favorites">
-                                    ★
-                                </button>
-                                <div class="popUpBox"
-                                     v-show="showPopups[widget.id + '_' + app.id]"
-                                     :class="{ flipped: flippedPopups[widget.id + '_' + app.id] }"
-                                     @mouseenter="setPopup(widget.id + '_' + app.id, true)"
-                                     @mouseleave="setPopup(widget.id + '_' + app.id, false)">
-                                    <strong>{{ app.name }}</strong><br>
-                                    {{ app.description }}<br>
-                                    <em>{{ app.function }}</em>
-                                    <a v-if="app.docsLink" :href="app.docsLink" target="_blank" class="popupDocsLink" @click.stop>
-                                        📄 Documentation
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </template>
-
-                    <!-- ── System Health widget ─────────────────────────── -->
-                    <template v-if="widget.type === 'health'">
-                        <div class="dashboardWidgets">
-
-                            <div class="dashWidget dashWidgetStatus">
-                                <div class="dashWidgetLabel">Overall Status</div>
-                                <div class="dashStatusBadge" :class="'status-' + health.systemStatus.overall">
-                                    <span class="dashStatusDot"></span>
-                                    {{ health.systemStatus.overall.charAt(0).toUpperCase() + health.systemStatus.overall.slice(1) }}
-                                </div>
-                                <div class="dashStatusMeta">
-                                    <span>Uptime <strong>{{ health.systemStatus.uptime }}</strong></span>
-                                    <span>Since {{ health.systemStatus.since }}</span>
-                                </div>
-                            </div>
-
-                            <div class="dashWidget dashWidgetMetrics">
-                                <div class="dashWidgetLabel">Resources</div>
-                                <div class="dashMetricRow">
-                                    <span class="dashMetricName">CPU</span>
-                                    <div class="dashBar"><div class="dashBarFill" :class="health.cpu.used > 80 ? 'danger' : health.cpu.used > 60 ? 'warn' : 'ok'" :style="{ width: health.cpu.used + '%' }"></div></div>
-                                    <span class="dashMetricValue">{{ health.cpu.label }}</span>
-                                </div>
-                                <div class="dashMetricRow">
-                                    <span class="dashMetricName">Memory</span>
-                                    <div class="dashBar"><div class="dashBarFill" :class="health.memory.used > 80 ? 'danger' : health.memory.used > 60 ? 'warn' : 'ok'" :style="{ width: health.memory.used + '%' }"></div></div>
-                                    <span class="dashMetricValue">{{ health.memory.label }}</span>
-                                </div>
-                                <div class="dashMetricRow">
-                                    <span class="dashMetricName">Disk</span>
-                                    <div class="dashBar"><div class="dashBarFill" :class="health.disk.used > 80 ? 'danger' : health.disk.used > 60 ? 'warn' : 'ok'" :style="{ width: health.disk.used + '%' }"></div></div>
-                                    <span class="dashMetricValue">{{ health.disk.label }}</span>
-                                </div>
-                            </div>
-
-                            <div class="dashWidget dashWidgetServices">
-                                <div class="dashWidgetLabel">Services
-                                    <span class="dashServicesCount">
-                                        <span class="dashServicesDot ok"></span>{{ health.services.filter(s => s.status === 'up').length }} up
-                                    </span>
-                                    <span class="dashServicesCount" v-if="health.services.some(s => s.status === 'degraded')">
-                                        <span class="dashServicesDot warn"></span>{{ health.services.filter(s => s.status === 'degraded').length }} degraded
-                                    </span>
-                                    <span class="dashServicesCount" v-if="health.services.some(s => s.status === 'down')">
-                                        <span class="dashServicesDot danger"></span>{{ health.services.filter(s => s.status === 'down').length }} down
-                                    </span>
-                                </div>
-                                <div class="dashServiceList">
-                                    <div class="dashServiceRow" v-for="svc in health.services" :key="svc.name">
-                                        <span class="dashServiceDot" :class="svc.status"></span>
-                                        <span class="dashServiceName">{{ svc.name }}</span>
-                                        <span class="dashServiceLatency">{{ svc.latency }}</span>
+                                        ★
+                                    </button>
+                                    <div class="popUpBox" v-show="showPopups[widget.id + '_' + app.id]"
+                                        :class="{ flipped: flippedPopups[widget.id + '_' + app.id] }"
+                                        @mouseenter="setPopup(widget.id + '_' + app.id, true)"
+                                        @mouseleave="setPopup(widget.id + '_' + app.id, false)">
+                                        <strong>{{ app.name }}</strong><br>
+                                        {{ app.description }}<br>
+                                        <em>{{ app.function }}</em>
+                                        <a v-if="app.docsLink" :href="app.docsLink" target="_blank"
+                                            class="popupDocsLink" @click.stop>
+                                            📄 Documentation
+                                        </a>
                                     </div>
                                 </div>
                             </div>
+                        </template>
 
-                            <div class="dashWidget dashWidgetAlerts">
-                                <div class="dashWidgetLabel">Recent Alerts</div>
-                                <div class="dashAlertList">
-                                    <div class="dashAlertRow" v-for="alert in health.alerts" :key="alert.id" :class="'alert-' + alert.severity">
-                                        <span class="dashAlertIcon">
-                                            <span v-if="alert.severity === 'error'">✕</span>
-                                            <span v-else-if="alert.severity === 'warning'">!</span>
-                                            <span v-else>i</span>
+                        <!-- ── System Health widget ─────────────────────────── -->
+                        <template v-if="widget.type === 'health'">
+                            <div class="dashboardWidgets">
+
+                                <div class="dashWidget dashWidgetStatus">
+                                    <div class="dashWidgetLabel">Overall Status</div>
+                                    <div class="dashStatusBadge" :class="'status-' + health.systemStatus.overall">
+                                        <span class="dashStatusDot"></span>
+                                        {{ health.systemStatus.overall.charAt(0).toUpperCase() +
+                                        health.systemStatus.overall.slice(1) }}
+                                    </div>
+                                    <div class="dashStatusMeta">
+                                        <span>Uptime <strong>{{ health.systemStatus.uptime }}</strong></span>
+                                        <span>Since {{ health.systemStatus.since }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="dashWidget dashWidgetMetrics">
+                                    <div class="dashWidgetLabel">Resources</div>
+                                    <div class="dashMetricRow">
+                                        <span class="dashMetricName">CPU</span>
+                                        <div class="dashBar">
+                                            <div class="dashBarFill"
+                                                :class="health.cpu.used > 80 ? 'danger' : health.cpu.used > 60 ? 'warn' : 'ok'"
+                                                :style="{ width: health.cpu.used + '%' }"></div>
+                                        </div>
+                                        <span class="dashMetricValue">{{ health.cpu.label }}</span>
+                                    </div>
+                                    <div class="dashMetricRow">
+                                        <span class="dashMetricName">Memory</span>
+                                        <div class="dashBar">
+                                            <div class="dashBarFill"
+                                                :class="health.memory.used > 80 ? 'danger' : health.memory.used > 60 ? 'warn' : 'ok'"
+                                                :style="{ width: health.memory.used + '%' }"></div>
+                                        </div>
+                                        <span class="dashMetricValue">{{ health.memory.label }}</span>
+                                    </div>
+                                    <div class="dashMetricRow">
+                                        <span class="dashMetricName">Disk</span>
+                                        <div class="dashBar">
+                                            <div class="dashBarFill"
+                                                :class="health.disk.used > 80 ? 'danger' : health.disk.used > 60 ? 'warn' : 'ok'"
+                                                :style="{ width: health.disk.used + '%' }"></div>
+                                        </div>
+                                        <span class="dashMetricValue">{{ health.disk.label }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="dashWidget dashWidgetServices">
+                                    <div class="dashWidgetLabel">Services
+                                        <span class="dashServicesCount">
+                                            <span class="dashServicesDot ok"></span>{{ health.services.filter(s =>
+                                            s.status === 'up').length }} up
                                         </span>
-                                        <span class="dashAlertMessage">{{ alert.message }}</span>
-                                        <span class="dashAlertTime">{{ alert.time }}</span>
+                                        <span class="dashServicesCount"
+                                            v-if="health.services.some(s => s.status === 'degraded')">
+                                            <span class="dashServicesDot warn"></span>{{ health.services.filter(s =>
+                                            s.status === 'degraded').length }} degraded
+                                        </span>
+                                        <span class="dashServicesCount"
+                                            v-if="health.services.some(s => s.status === 'down')">
+                                            <span class="dashServicesDot danger"></span>{{ health.services.filter(s =>
+                                            s.status === 'down').length }} down
+                                        </span>
+                                    </div>
+                                    <div class="dashServiceList">
+                                        <div class="dashServiceRow" v-for="svc in health.services" :key="svc.name">
+                                            <span class="dashServiceDot" :class="svc.status"></span>
+                                            <span class="dashServiceName">{{ svc.name }}</span>
+                                            <span class="dashServiceLatency">{{ svc.latency }}</span>
+                                        </div>
                                     </div>
                                 </div>
+
+                                <div class="dashWidget dashWidgetAlerts">
+                                    <div class="dashWidgetLabel">Recent Alerts</div>
+                                    <div class="dashAlertList">
+                                        <div class="dashAlertRow" v-for="alert in health.alerts" :key="alert.id"
+                                            :class="'alert-' + alert.severity">
+                                            <span class="dashAlertIcon">
+                                                <span v-if="alert.severity === 'error'">✕</span>
+                                                <span v-else-if="alert.severity === 'warning'">!</span>
+                                                <span v-else>i</span>
+                                            </span>
+                                            <span class="dashAlertMessage">{{ alert.message }}</span>
+                                            <span class="dashAlertTime">{{ alert.time }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
                             </div>
+                            <div class="dashboardChecked">Last checked {{ health.systemStatus.lastChecked }}</div>
+                        </template>
 
-                        </div>
-                        <div class="dashboardChecked">Last checked {{ health.systemStatus.lastChecked }}</div>
-                    </template>
-
-                </div><!-- end .widget -->
+                    </div><!-- end .widget -->
+                </template>
 
                 <!-- ── Add Widget ─────────────────────────────────────────── -->
                 <div class="addWidgetArea" v-if="hiddenWidgets.length > 0">
@@ -357,10 +354,8 @@
                         </button>
                         <div class="addWidgetPanel" v-show="showAddWidgetPanel" @click.stop>
                             <div class="addWidgetPanelTitle">Hidden widgets</div>
-                            <div class="addWidgetItem"
-                                 v-for="w in hiddenWidgets"
-                                 :key="w.id"
-                                 @click="restoreWidget(w.id); showAddWidgetPanel = false">
+                            <div class="addWidgetItem" v-for="w in hiddenWidgets" :key="w.id"
+                                @click="restoreWidget(w.id); showAddWidgetPanel = false">
                                 {{ widgetTitle(w) }}
                             </div>
                         </div>
@@ -373,121 +368,110 @@
 
         <!-- Announcements Modal -->
         <transition name="modal-fade">
-        <div class="settingsOverlay" v-if="showAnnouncements" @click.self="closeAnnouncements">
-            <div class="settingsPanel announcementsPanel">
-                <div class="settingsHeader">
-                    <h2>📣 Announcements</h2>
-                    <div class="announcementsHeaderActions">
-                        <button class="markAllReadBtn" v-if="unreadCount > 0" @click="markAllRead">Mark all read</button>
-                        <button class="settingsClose" @click="closeAnnouncements">✕</button>
-                    </div>
-                </div>
-                <div class="announcementsList">
-                    <div
-                        v-for="a in announcements"
-                        :key="a.id"
-                        class="announcementItem"
-                        :class="['announcement-' + a.type, { unread: !a.read }]"
-                        @click="markRead(a.id)">
-                        <div class="announcementDot" v-if="!a.read"></div>
-                        <div class="announcementContent">
-                            <div class="announcementTitle">{{ a.title }}</div>
-                            <div class="announcementBody">{{ a.body }}</div>
-                            <div class="announcementDate">{{ a.date }}</div>
+            <div class="settingsOverlay" v-if="showAnnouncements" @click.self="closeAnnouncements">
+                <div class="settingsPanel announcementsPanel">
+                    <div class="settingsHeader">
+                        <h2>📣 Announcements</h2>
+                        <div class="announcementsHeaderActions">
+                            <button class="markAllReadBtn" v-if="unreadCount > 0" @click="markAllRead">Mark all
+                                read</button>
+                            <button class="settingsClose" @click="closeAnnouncements">✕</button>
                         </div>
                     </div>
-                    <div class="announcementsEmpty" v-if="announcements.length === 0">
-                        No announcements yet.
+                    <div class="announcementsList">
+                        <div v-for="a in announcements" :key="a.id" class="announcementItem"
+                            :class="['announcement-' + a.type, { unread: !a.read }]" @click="markRead(a.id)">
+                            <div class="announcementDot" v-if="!a.read"></div>
+                            <div class="announcementContent">
+                                <div class="announcementTitle">{{ a.title }}</div>
+                                <div class="announcementBody">{{ a.body }}</div>
+                                <div class="announcementDate">{{ a.date }}</div>
+                            </div>
+                        </div>
+                        <div class="announcementsEmpty" v-if="announcements.length === 0">
+                            No announcements yet.
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
         </transition>
 
         <!-- Settings Modal -->
         <transition name="modal-fade">
-        <div class="settingsOverlay" v-if="showSettings" @click.self="closeSettings">
-            <div class="settingsPanel">
-                <div class="settingsHeader">
-                    <h2>Settings</h2>
-                    <button class="settingsClose" @click="closeSettings">✕</button>
-                </div>
-
-                <!-- Theme -->
-                <div class="settingsSection">
-                    <div class="settingsSectionTitle">Appearance</div>
-                    <div class="settingsRow">
-                        <label class="settingsLabel">Theme</label>
-                        <div class="settingsOptions">
-                            <button class="settingsOption"
-                                    :class="{ active: settings.theme === 'light' }"
-                                    @click="settings.theme = 'light'; saveSettings()">☀ Light</button>
-                            <button class="settingsOption"
-                                    :class="{ active: settings.theme === 'dark' }"
-                                    @click="settings.theme = 'dark'; saveSettings()">🌙 Dark</button>
-                            <button class="settingsOption"
-                                    :class="{ active: settings.theme === 'blue' }"
-                                    @click="settings.theme = 'blue'; saveSettings()">🔵 Blue</button>
-                        </div>
+            <div class="settingsOverlay" v-if="showSettings" @click.self="closeSettings">
+                <div class="settingsPanel">
+                    <div class="settingsHeader">
+                        <h2>Settings</h2>
+                        <button class="settingsClose" @click="closeSettings">✕</button>
                     </div>
-                    <div class="settingsRow">
-                        <label class="settingsLabel">Grid Density</label>
-                        <div class="settingsOptions">
-                            <button class="settingsOption"
-                                    :class="{ active: settings.gridDensity === 'compact' }"
+
+                    <!-- Theme -->
+                    <div class="settingsSection">
+                        <div class="settingsSectionTitle">Appearance</div>
+                        <div class="settingsRow">
+                            <label class="settingsLabel">Theme</label>
+                            <div class="settingsOptions">
+                                <button class="settingsOption" :class="{ active: settings.theme === 'light' }"
+                                    @click="settings.theme = 'light'; saveSettings()">☀ Light</button>
+                                <button class="settingsOption" :class="{ active: settings.theme === 'dark' }"
+                                    @click="settings.theme = 'dark'; saveSettings()">🌙 Dark</button>
+                                <button class="settingsOption" :class="{ active: settings.theme === 'blue' }"
+                                    @click="settings.theme = 'blue'; saveSettings()">🔵 Blue</button>
+                            </div>
+                        </div>
+                        <div class="settingsRow">
+                            <label class="settingsLabel">Grid Density</label>
+                            <div class="settingsOptions">
+                                <button class="settingsOption" :class="{ active: settings.gridDensity === 'compact' }"
                                     @click="settings.gridDensity = 'compact'; saveSettings()">Compact</button>
-                            <button class="settingsOption"
+                                <button class="settingsOption"
                                     :class="{ active: settings.gridDensity === 'comfortable' }"
                                     @click="settings.gridDensity = 'comfortable'; saveSettings()">Comfortable</button>
-                            <button class="settingsOption"
-                                    :class="{ active: settings.gridDensity === 'spacious' }"
+                                <button class="settingsOption" :class="{ active: settings.gridDensity === 'spacious' }"
                                     @click="settings.gridDensity = 'spacious'; saveSettings()">Spacious</button>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Layout -->
-                <div class="settingsSection">
-                    <div class="settingsSectionTitle">Layout</div>
-                    <div class="settingsRow">
-                        <label class="settingsLabel">Widget Layout</label>
-                        <div class="settingsOptions">
-                            <button class="settingsOption"
-                                    :class="{ active: settings.widgetLayout === 'stack' }"
+                    <!-- Layout -->
+                    <div class="settingsSection">
+                        <div class="settingsSectionTitle">Layout</div>
+                        <div class="settingsRow">
+                            <label class="settingsLabel">Widget Layout</label>
+                            <div class="settingsOptions">
+                                <button class="settingsOption" :class="{ active: settings.widgetLayout === 'stack' }"
                                     @click="settings.widgetLayout = 'stack'; saveSettings()">☰ Stack</button>
-                            <button class="settingsOption"
-                                    :class="{ active: settings.widgetLayout === 'grid' }"
+                                <button class="settingsOption" :class="{ active: settings.widgetLayout === 'grid' }"
                                     @click="settings.widgetLayout = 'grid'; saveSettings()">▦ Grid</button>
+                            </div>
+                        </div>
+                        <div class="settingsHint">
+                            In edit mode, drag widget headers to reorder. Use ✕ to hide a widget, then "+ Add Widget" to
+                            restore it.
                         </div>
                     </div>
-                    <div class="settingsHint">
-                        In edit mode, drag widget headers to reorder. Use ✕ to hide a widget, then "+ Add Widget" to restore it.
-                    </div>
-                </div>
 
-                <!-- Sidebar -->
-                <div class="settingsSection">
-                    <div class="settingsSectionTitle">Sidebar</div>
-                    <div class="settingsRow">
-                        <label class="settingsLabel">Show "Recent"</label>
-                        <div class="settingsToggle"
-                             :class="{ on: settings.showRecent }"
-                             @click="settings.showRecent = !settings.showRecent; saveSettings()">
-                            <div class="settingsToggleKnob"></div>
+                    <!-- Sidebar -->
+                    <div class="settingsSection">
+                        <div class="settingsSectionTitle">Sidebar</div>
+                        <div class="settingsRow">
+                            <label class="settingsLabel">Show "Recent"</label>
+                            <div class="settingsToggle" :class="{ on: settings.showRecent }"
+                                @click="settings.showRecent = !settings.showRecent; saveSettings()">
+                                <div class="settingsToggleKnob"></div>
+                            </div>
+                        </div>
+                        <div class="settingsRow">
+                            <label class="settingsLabel">Show "Most Used"</label>
+                            <div class="settingsToggle" :class="{ on: settings.showMostUsed }"
+                                @click="settings.showMostUsed = !settings.showMostUsed; saveSettings()">
+                                <div class="settingsToggleKnob"></div>
+                            </div>
                         </div>
                     </div>
-                    <div class="settingsRow">
-                        <label class="settingsLabel">Show "Most Used"</label>
-                        <div class="settingsToggle"
-                             :class="{ on: settings.showMostUsed }"
-                             @click="settings.showMostUsed = !settings.showMostUsed; saveSettings()">
-                            <div class="settingsToggleKnob"></div>
-                        </div>
-                    </div>
-                </div>
 
+                </div>
             </div>
-        </div>
         </transition>
 
     </div>
